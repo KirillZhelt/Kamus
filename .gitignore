@@ -1,0 +1,11 @@
+# Gradle
+**/.gradle/
+**/gradle/
+
+# IntelliJ IDEA
+**/.idea
+
+# Java
+*.class
+*.jar
+/build
