@@ -22,6 +22,8 @@ dependencies {
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'com.graphql-java:graphql-spring-boot-starter:5.0.2'
 	implementation 'com.graphql-java:graphql-java-tools:5.2.4'
+
+	implementation 'com.apollographql.apollo:apollo-rx3-support:2.4.5'
 	implementation 'com.apollographql.apollo:apollo-runtime:2.4.5'
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {

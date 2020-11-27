@@ -12,3 +12,6 @@
 
 # Secrets
 **/secrets.properties
+
+# MacOS
+.DS_Store
