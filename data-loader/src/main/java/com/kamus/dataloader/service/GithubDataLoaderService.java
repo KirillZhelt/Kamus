@@ -18,4 +18,6 @@ public class GithubDataLoaderService {
         return githubTemplate.queryCall(new FindIssueIDQuery());
     }
 
+    // TODO: add method for getting all repo's commits, use github caching and not-modified headers, think about how to handle periodic updates
+
 }

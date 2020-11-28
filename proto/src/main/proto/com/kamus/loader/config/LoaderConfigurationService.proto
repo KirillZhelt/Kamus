@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import "com/kamus/common/GitEntities.proto";
+
+package com.kamus.loader.config.grpcjava;
+
+option java_multiple_files = true;
+option java_package = "com.kamus.loader.config.grpcjava";
+
+message LoaderConfiguration {
+  repeated com.kamus.common.grpcjava.Repository repository = 1;
+}
+
+message AddRepositoryRequest {
+  com.kamus.common.grpcjava.Repository repository = 1;
+}
+
+message AddRepositoryResponse {
+}
+
+message RemoveRepositoryRequest {
+  com.kamus.common.grpcjava.Repository repository = 1;
+}
+
+message RemoveRepositoryResponse {
+}
+
+message GetLoaderConfigurationRequest {
+  string loaderServiceId = 1;
+}
+
+message GetLoaderConfigurationResponse {
+  LoaderConfiguration loaderConfiguration = 1;
+}
+
+service LoaderConfigurationService {
+  rpc addRepository(AddRepositoryRequest) returns (AddRepositoryResponse);
+  rpc removeRepository(RemoveRepositoryRequest) returns (RemoveRepositoryResponse);
+
+  rpc getLoaderConfiguration(GetLoaderConfigurationRequest) returns (GetLoaderConfigurationResponse);
+}

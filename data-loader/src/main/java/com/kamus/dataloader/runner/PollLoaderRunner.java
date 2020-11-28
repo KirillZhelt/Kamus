@@ -1,10 +1,11 @@
 package com.kamus.dataloader.runner;
 
 import com.kamus.dataloader.service.GithubDataLoaderService;
+import com.kamus.dataloader.service.LoaderConfigurationUpdater;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
-import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -15,11 +16,27 @@ public class PollLoaderRunner {
     private static final Logger logger = LoggerFactory.getLogger(PollLoaderRunner.class);
 
     private final GithubDataLoaderService loaderService;
-    private final CompositeDisposable compositeDisposable;
+    private final LoaderConfigurationUpdater configurationUpdater;
 
-    public PollLoaderRunner(GithubDataLoaderService loaderService) {
+    private final CompositeDisposable compositeDisposable = new CompositeDisposable();
+
+    public PollLoaderRunner(GithubDataLoaderService loaderService, LoaderConfigurationUpdater configurationUpdater) {
         this.loaderService = loaderService;
-        this.compositeDisposable = new CompositeDisposable();
+        this.configurationUpdater = configurationUpdater;
+    }
+
+    @Scheduled(fixedDelay = 1000)
+    public void scheduledPoll() {
+        // TODO: load new repos info according to the config and put it in kafka
+        // 1. load config or update if needed
+        // 2. load data according to config
+        // 3. put new messages in kafka
+//        LoaderConfiguration configuration = configurationUpdater.getCurrentConfiguration();
+//        configuration.getRepositoryList().stream().map(repo -> {
+//            loaderService.
+//        });
+
+        logger.info("scheduledPoll()");
     }
 
     public void poll() {

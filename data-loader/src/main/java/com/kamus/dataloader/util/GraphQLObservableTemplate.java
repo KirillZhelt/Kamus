@@ -15,6 +15,9 @@ import java.util.Objects;
 
 public class GraphQLObservableTemplate {
 
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER = "Bearer";
+
     private final ApolloClient apolloClient;
     private final RequestHeaders requestHeaders;
 
@@ -24,7 +27,7 @@ public class GraphQLObservableTemplate {
 
         this.apolloClient = apolloClient;
         this.requestHeaders = RequestHeaders.builder()
-                                      .addHeader("Authorization", "Bearer " + bearerToken)
+                                      .addHeader(AUTHORIZATION_HEADER, BEARER + " " + bearerToken)
                                       .build();
     }
 

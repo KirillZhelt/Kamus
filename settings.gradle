@@ -2,4 +2,6 @@ rootProject.name = 'Kamus'
 
 include 'data-loader'
 include 'core-common'
+include 'proto'
+include 'loader-config'
 

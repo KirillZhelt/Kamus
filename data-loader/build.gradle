@@ -18,6 +18,13 @@ ext {
 }
 
 dependencies {
+	implementation project(':proto')
+
+	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
+	implementation 'io.grpc:grpc-protobuf:1.33.1'
+	implementation 'io.grpc:grpc-stub:1.33.1'
+	compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+
 	implementation 'org.springframework.cloud:spring-cloud-starter-zookeeper-config'
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'com.graphql-java:graphql-spring-boot-starter:5.0.2'
