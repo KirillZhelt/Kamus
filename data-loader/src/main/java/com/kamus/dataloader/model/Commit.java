@@ -1,6 +1,7 @@
 package com.kamus.dataloader.model;
 
 import com.kamus.dataloader.queries.GetCommitsPaginatedQuery;
+import com.kamus.dataloader.queries.GetCommitsPaginatedWithUntilQuery;
 import com.kamus.dataloader.queries.GetLatestCommitQuery;
 
 import java.util.Objects;
@@ -68,5 +69,24 @@ public class Commit {
         return new Commit(node.author().name(), node.author().email(),
                 node.additions(), node.deletions(), node.changedFiles(),
                 (String) node.committedDate(), (String) node.oid());
+    }
+
+    public static Commit fromNode(GetCommitsPaginatedWithUntilQuery.Node node) {
+        return new Commit(node.author().name(), node.author().email(),
+                node.additions(), node.deletions(), node.changedFiles(),
+                (String) node.committedDate(), (String) node.oid());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Commit commit = (Commit) o;
+        return oid.equals(commit.oid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(oid);
     }
 }

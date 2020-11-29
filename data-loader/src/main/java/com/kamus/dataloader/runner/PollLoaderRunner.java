@@ -42,7 +42,7 @@ public class PollLoaderRunner {
 
     public void poll() {
         compositeDisposable.add(
-                loaderService.getAllCommits(Repository.newBuilder().setOwner("KirillZhelt").setName("MayMayMay").build())
+                loaderService.getNewCommits(Repository.newBuilder().setOwner("KirillZhelt").setName("MayMayMay").build())
                         .subscribe((d) -> logger.info(d.toString()), (t) -> logger.error(t.toString()), () -> logger.info("complete"))
         );
     }

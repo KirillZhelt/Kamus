@@ -1,3 +1,36 @@
+# Used for fetching only new commits for the repo
+query GetCommitsPaginatedWithUntil($owner: String!, $name: String!, $after: GitObjectID!, $afterCursor: String!,
+    $commitsPerPage: Int!, $latestCommitDate: GitTimestamp!) {
+    repository(owner: $owner, name: $name) {
+        object(oid: $after) {
+            ... on Commit {
+                history(first: $commitsPerPage, after: $afterCursor, since: $latestCommitDate) {
+                    edges {
+                        node {
+                            ... on Commit {
+                                author {
+                                    email
+                                    name
+                                }
+                                additions
+                                deletions
+                                changedFiles
+                                committedDate
+                                oid
+                            }
+                        }
+                    }
+                    pageInfo {
+                        endCursor
+                        hasNextPage
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Used for fetching al commits from the repo
 query GetCommitsPaginated($owner: String!, $name: String!, $after: GitObjectID!, $afterCursor: String!, $commitsPerPage: Int!) {
     repository(owner: $owner, name: $name) {
         object(oid: $after) {
