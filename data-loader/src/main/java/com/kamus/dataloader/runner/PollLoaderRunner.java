@@ -1,5 +1,6 @@
 package com.kamus.dataloader.runner;
 
+import com.kamus.common.grpcjava.Repository;
 import com.kamus.dataloader.service.GithubDataLoaderService;
 import com.kamus.dataloader.service.LoaderConfigurationUpdater;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
@@ -41,7 +42,7 @@ public class PollLoaderRunner {
 
     public void poll() {
         compositeDisposable.add(
-                loaderService.findIssueId()
+                loaderService.getAllCommits(Repository.newBuilder().setOwner("KirillZhelt").setName("MayMayMay").build())
                         .subscribe((d) -> logger.info(d.toString()), (t) -> logger.error(t.toString()), () -> logger.info("complete"))
         );
     }
