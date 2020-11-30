@@ -4,4 +4,4 @@ include 'data-loader'
 include 'core-common'
 include 'proto'
 include 'loader-config'
-
+include 'commits-analyzer'

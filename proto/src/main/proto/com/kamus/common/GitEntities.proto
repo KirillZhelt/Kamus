@@ -9,3 +9,18 @@ message Repository {
   string name = 1;
   string owner = 2; // The login field of a user or organization.
 }
+
+message CommitStats {
+  int32 additions = 1;
+  int32 deletions = 2;
+  int32 changedFiles = 3;
+}
+
+message Commit {
+  Repository repository = 1;
+  string authorName = 2;
+  string authorEmail = 3;
+  string commitDate = 4;
+  string sha = 5;
+  CommitStats stats = 6;
+}

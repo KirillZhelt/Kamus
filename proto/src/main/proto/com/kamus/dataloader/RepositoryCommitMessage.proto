@@ -7,17 +7,6 @@ package com.kamus.dataloader.grpcjava;
 option java_multiple_files = true;
 option java_package = "com.kamus.dataloader.grpcjava";
 
-message CommitStatsMessage {
-  int32 additions = 1;
-  int32 deletions = 2;
-  int32 total = 3;
-}
-
 message RepositoryCommitMessage {
-  com.kamus.common.grpcjava.Repository repository = 1;
-  string authorName = 2;
-  string authorEmail = 3;
-  string commitDate = 4;
-  string sha = 5;
-  CommitStatsMessage stats = 6;
+  com.kamus.common.grpcjava.Commit commit = 1;
 }

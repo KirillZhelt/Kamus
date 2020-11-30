@@ -1,0 +1,39 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.6.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+}
+
+group = 'com.kamus.commitsanalyzer'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+	maven {
+		url 'https://packages.confluent.io/maven/'
+	}
+}
+
+dependencies {
+	implementation project(':proto')
+
+	implementation 'io.confluent:kafka-protobuf-serializer:6.0.0'
+	implementation 'io.confluent:kafka-streams-protobuf-serde:6.0.0'
+
+	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
+	implementation 'io.grpc:grpc-protobuf:1.33.1'
+	implementation 'io.grpc:grpc-stub:1.33.1'
+	compileOnly 'org.apache.tomcat:annotations-api:6.0.53' // necessary for Java 9+
+
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'org.apache.kafka:kafka-streams'
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
