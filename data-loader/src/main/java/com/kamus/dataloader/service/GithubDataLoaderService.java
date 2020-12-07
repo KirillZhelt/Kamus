@@ -1,10 +1,11 @@
 package com.kamus.dataloader.service;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.kamus.common.grpcjava.Commit;
 import com.kamus.common.grpcjava.Repository;
-import com.kamus.dataloader.model.CommitFootprint;
+import com.kamus.dataloader.db.model.LatestCommit;
+import com.kamus.dataloader.db.model.RepositoryId;
+import com.kamus.dataloader.db.repostitory.LatestCommitRepository;
 import com.kamus.dataloader.queries.GetCommitsPaginatedQuery;
 import com.kamus.dataloader.queries.GetCommitsPaginatedWithUntilQuery;
 import com.kamus.dataloader.queries.GetLatestCommitQuery;
@@ -24,31 +25,24 @@ public class GithubDataLoaderService {
     private static final int COMMITS_PER_PAGE = 100; // 100 is max and is limited by GitHub requirements
 
     private final GraphQLObservableTemplate githubTemplate;
+    private final LatestCommitRepository latestCommitRepository;
 
-    // TODO: should be stored in shared db among all data-loader instances
-    private final Map<Repository, CommitFootprint> latestCommit = ImmutableMap.of(
-            Repository.newBuilder().setOwner("KirillZhelt").setName("MayMayMay").build(),
-            new CommitFootprint("2019-12-03T19:26:16Z", "ce9113b84518e30b8f5cb670c526fdbc2c7bd41c")
-    );
-
-    public GithubDataLoaderService(GraphQLObservableTemplate githubTemplate) {
+    public GithubDataLoaderService(GraphQLObservableTemplate githubTemplate, LatestCommitRepository latestCommitRepository) {
         this.githubTemplate = githubTemplate;
+        this.latestCommitRepository = latestCommitRepository;
     }
 
     public Single<List<Commit>> getNewCommits(Repository repository) {
-        CommitFootprint commit = latestCommit.get(repository);
-        if (Objects.nonNull(commit)) {
-            return Single.fromObservable(getCommitsAfter(commit, repository));
-        } else {
-            return Single.fromObservable(getAllCommits(repository));
-        }
+        Optional<LatestCommit> commit = latestCommitRepository.findById(new RepositoryId(repository.getOwner(), repository.getName()));
+        return commit.map(latestCommit -> Single.fromObservable(getCommitsAfter(latestCommit, repository)))
+                       .orElseGet(() -> Single.fromObservable(getAllCommits(repository)));
     }
 
-    private Observable<List<Commit>> getCommitsAfter(CommitFootprint commit, Repository repository) {
+    private Observable<List<Commit>> getCommitsAfter(LatestCommit commit, Repository repository) {
         Objects.requireNonNull(commit);
 
         return getLatestCommit(repository).flatMap(latestCommit -> {
-            if (latestCommit.equals(commit)) {
+            if (latestCommit.getSha().equals(commit.getSha())) {
                 return Observable.just(Collections.emptyList());
             } else {
                 return Observable.just(ImmutableList.of(latestCommit))
@@ -61,14 +55,14 @@ public class GithubDataLoaderService {
         });
     }
 
-    private Observable<List<Commit>> getCommitsPaginatedWithUntil(Repository repository, String rootCommitOid, String afterCursor, int commitsPerPage, CommitFootprint untilCommit) {
+    private Observable<List<Commit>> getCommitsPaginatedWithUntil(Repository repository, String rootCommitOid, String afterCursor, int commitsPerPage, LatestCommit untilCommit) {
         return githubTemplate.queryCall(new GetCommitsPaginatedWithUntilQuery(repository.getOwner(), repository.getName(),
                 rootCommitOid, afterCursor, commitsPerPage, untilCommit.getCommitDate()))
                        .flatMap(data -> {
                            GetCommitsPaginatedWithUntilQuery.AsCommit rootCommit = (GetCommitsPaginatedWithUntilQuery.AsCommit) data.repository().object();
 
                            List<Commit> commits = rootCommit.history().edges().stream()
-                                                          .map(edge -> GraphQL2ProtobufConverter.fromNode(edge.node()))
+                                                          .map(edge -> GraphQL2ProtobufConverter.fromNode(repository, edge.node()))
                                                           .collect(Collectors.toList());
 
                            if (rootCommit.history().pageInfo().hasNextPage()) {
@@ -76,7 +70,7 @@ public class GithubDataLoaderService {
                                               .zipWith(getCommitsPaginatedWithUntil(repository, rootCommitOid, rootCommit.history().pageInfo().endCursor(), commitsPerPage, untilCommit),
                                                       (l, r) -> Stream.concat(l.stream(), r.stream()).collect(Collectors.toList()));
                            } else {
-                               commits.removeIf(commit -> commit.equals(untilCommit));
+                               commits.removeIf(commit -> commit.getSha().equals(untilCommit.getSha()));
                                return Observable.just(commits);
                            }
                        });
@@ -97,7 +91,7 @@ public class GithubDataLoaderService {
                     GetCommitsPaginatedQuery.AsCommit rootCommit = (GetCommitsPaginatedQuery.AsCommit) data.repository().object();
 
                     List<Commit> commits = rootCommit.history().edges().stream()
-                                                   .map(edge -> GraphQL2ProtobufConverter.fromNode(edge.node()))
+                                                   .map(edge -> GraphQL2ProtobufConverter.fromNode(repository, edge.node()))
                                                    .collect(Collectors.toList());
 
                     if (rootCommit.history().pageInfo().hasNextPage()) {
@@ -112,7 +106,7 @@ public class GithubDataLoaderService {
 
     private Observable<Commit> getLatestCommit(Repository repository) {
         return githubTemplate.queryCall(new GetLatestCommitQuery(repository.getOwner(), repository.getName()))
-                .map(data -> GraphQL2ProtobufConverter.fromAsCommit((GetLatestCommitQuery.AsCommit) data.repository().defaultBranchRef().target()));
+                .map(data -> GraphQL2ProtobufConverter.fromAsCommit(repository, (GetLatestCommitQuery.AsCommit) data.repository().defaultBranchRef().target()));
     }
 
 }
