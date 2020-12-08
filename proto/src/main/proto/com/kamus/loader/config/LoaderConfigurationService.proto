@@ -16,6 +16,7 @@ message AddRepositoryRequest {
 }
 
 message AddRepositoryResponse {
+  bool added = 1; // true if added, false if already existed
 }
 
 message RemoveRepositoryRequest {
@@ -23,10 +24,19 @@ message RemoveRepositoryRequest {
 }
 
 message RemoveRepositoryResponse {
+  bool removed = 1; // true if removed, false if doesn't existed
+}
+
+message GetRepositoriesRequest {
+
+}
+
+message GetRepositoriesResponse {
+  repeated com.kamus.common.grpcjava.Repository repository = 1;
 }
 
 message GetLoaderConfigurationRequest {
-  string loaderServiceId = 1;
+  string configurationId = 1;
 }
 
 message GetLoaderConfigurationResponse {
@@ -36,6 +46,7 @@ message GetLoaderConfigurationResponse {
 service LoaderConfigurationService {
   rpc addRepository(AddRepositoryRequest) returns (AddRepositoryResponse);
   rpc removeRepository(RemoveRepositoryRequest) returns (RemoveRepositoryResponse);
+  rpc getRepositories(GetRepositoriesRequest) returns (GetRepositoriesResponse);
 
   rpc getLoaderConfiguration(GetLoaderConfigurationRequest) returns (GetLoaderConfigurationResponse);
 }
