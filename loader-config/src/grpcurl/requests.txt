@@ -1,0 +1,2 @@
+grpcurl -plaintext -import-path . -proto com/kamus/loaderconfig/LoaderConfigurationService.proto localhost:1234 com.kamus.loaderconfig.grpcjava.LoaderConfigurationService/addRepository
+

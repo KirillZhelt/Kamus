@@ -2,10 +2,10 @@ syntax = "proto3";
 
 import "com/kamus/common/GitEntities.proto";
 
-package com.kamus.loader.config.grpcjava;
+package com.kamus.loaderconfig.grpcjava;
 
 option java_multiple_files = true;
-option java_package = "com.kamus.loader.config.grpcjava";
+option java_package = "com.kamus.loaderconfig.grpcjava";
 
 message LoaderConfiguration {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
@@ -36,7 +36,7 @@ message GetRepositoriesResponse {
 }
 
 message GetLoaderConfigurationRequest {
-  string configurationId = 1;
+
 }
 
 message GetLoaderConfigurationResponse {
