@@ -2,7 +2,7 @@ package com.kamus.dataloader.service;
 
 import com.google.common.collect.ImmutableSet;
 import com.kamus.common.grpcjava.Repository;
-import com.kamus.loader.config.grpcjava.LoaderConfiguration;
+import com.kamus.loaderconfig.grpcjava.LoaderConfiguration;
 import org.apache.curator.x.async.api.AsyncCuratorFrameworkDsl;
 import org.apache.curator.x.async.api.CreateOption;
 import org.apache.zookeeper.CreateMode;

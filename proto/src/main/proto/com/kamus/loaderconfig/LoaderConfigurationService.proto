@@ -11,27 +11,25 @@ message LoaderConfiguration {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
 }
 
-message AddRepositoryRequest {
+message TrackRepositoryRequest {
   com.kamus.common.grpcjava.Repository repository = 1;
 }
 
-message AddRepositoryResponse {
-  bool added = 1; // true if added, false if already existed
+message TrackRepositoryResponse {
 }
 
-message RemoveRepositoryRequest {
+message UntrackRepositoryRequest {
   com.kamus.common.grpcjava.Repository repository = 1;
 }
 
-message RemoveRepositoryResponse {
-  bool removed = 1; // true if removed, false if doesn't existed
+message UntrackRepositoryResponse {
 }
 
-message GetRepositoriesRequest {
+message GetTrackedRepositoriesRequest {
 
 }
 
-message GetRepositoriesResponse {
+message GetTrackedRepositoriesResponse {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
 }
 
@@ -44,9 +42,9 @@ message GetLoaderConfigurationResponse {
 }
 
 service LoaderConfigurationService {
-  rpc addRepository(AddRepositoryRequest) returns (AddRepositoryResponse);
-  rpc removeRepository(RemoveRepositoryRequest) returns (RemoveRepositoryResponse);
-  rpc getRepositories(GetRepositoriesRequest) returns (GetRepositoriesResponse);
+  rpc trackRepository(TrackRepositoryRequest) returns (TrackRepositoryResponse);
+  rpc untrackRepository(UntrackRepositoryRequest) returns (UntrackRepositoryResponse);
+  rpc getTrackedRepositories(GetTrackedRepositoriesRequest) returns (GetTrackedRepositoriesResponse);
 
   rpc getLoaderConfiguration(GetLoaderConfigurationRequest) returns (GetLoaderConfigurationResponse);
 }
