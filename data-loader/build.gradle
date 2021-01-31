@@ -22,22 +22,18 @@ ext {
 
 dependencies {
 	implementation project(':proto')
+	implementation project(':core:zookeeper')
+	implementation project(':core:spring-grpc')
 
 	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
 	implementation 'io.grpc:grpc-protobuf:1.33.1'
 	implementation 'io.grpc:grpc-stub:1.33.1'
+	implementation 'io.grpc:grpc-core:1.33.1'
 
 	implementation 'io.confluent:kafka-protobuf-serializer:6.0.0'
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'mysql:mysql-connector-java'
-
-	implementation('org.apache.curator:curator-x-async:4.0.1') {
-		exclude group: 'org.apache.zookeeper', module: 'zookeeper'
-	}
-	implementation('org.apache.zookeeper:zookeeper:3.4.11') {
-		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-	}
 
 	implementation 'org.springframework.kafka:spring-kafka'
 	implementation 'com.graphql-java:graphql-spring-boot-starter:5.0.2'

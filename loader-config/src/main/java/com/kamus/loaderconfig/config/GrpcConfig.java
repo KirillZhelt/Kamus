@@ -1,5 +1,6 @@
 package com.kamus.loaderconfig.config;
 
+import com.kamus.core.spring.grpc.GrpcServerRunner;
 import com.kamus.loaderconfig.grpcjava.LoaderConfigurationServiceGrpc.LoaderConfigurationServiceImplBase;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -18,6 +19,11 @@ public class GrpcConfig {
         return ServerBuilder.forPort(loaderConfigurationServicePort)
                        .addService(loaderConfigurationService)
                        .build();
+    }
+
+    @Bean
+    public GrpcServerRunner grpcServerRunner(Server grpcServer) {
+        return new GrpcServerRunner(grpcServer);
     }
 
 }

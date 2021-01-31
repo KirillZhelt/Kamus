@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'com.kamus'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.grpc:grpc-netty-shaded:1.33.1'
+    implementation 'io.grpc:grpc-protobuf:1.33.1'
+    implementation 'io.grpc:grpc-stub:1.33.1'
+
+    implementation 'org.springframework.boot:spring-boot-starter:2.4.1'
+}

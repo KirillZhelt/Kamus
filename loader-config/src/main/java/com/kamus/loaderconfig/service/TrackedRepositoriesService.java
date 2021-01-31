@@ -1,7 +1,7 @@
 package com.kamus.loaderconfig.service;
 
 import com.kamus.common.grpcjava.Repository;
-import com.kamus.loaderconfig.db.RepositoriesRepository;
+import com.kamus.loaderconfig.db.repository.RepositoriesRepository;
 import com.kamus.loaderconfig.db.model.RepositoryId;
 import com.kamus.loaderconfig.db.model.TrackedRepository;
 import org.springframework.stereotype.Service;

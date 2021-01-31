@@ -8,7 +8,7 @@ import com.kamus.dataloader.db.model.LoadedCommit;
 import com.kamus.dataloader.db.model.RepositoryId;
 import com.kamus.dataloader.db.repostitory.LatestCommitRepository;
 import com.kamus.dataloader.service.GithubDataLoaderService;
-import com.kamus.dataloader.service.LoaderConfigurationUpdater;
+import com.kamus.dataloader.service.LoaderConfigurationService;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,13 +26,13 @@ public class PollLoaderRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(PollLoaderRunner.class);
 
-    private final LoaderConfigurationUpdater configurationUpdater;
+    private final LoaderConfigurationService configurationUpdater;
     private final GithubDataLoaderService loaderService;
     private final LatestCommitRepository latestCommitRepository;
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    public PollLoaderRunner(GithubDataLoaderService loaderService, LoaderConfigurationUpdater configurationUpdater,
+    public PollLoaderRunner(GithubDataLoaderService loaderService, LoaderConfigurationService configurationUpdater,
                             LatestCommitRepository latestCommitRepository) {
         this.loaderService = loaderService;
         this.configurationUpdater = configurationUpdater;

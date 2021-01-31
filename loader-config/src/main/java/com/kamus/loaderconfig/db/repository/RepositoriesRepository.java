@@ -1,4 +1,4 @@
-package com.kamus.loaderconfig.db;
+package com.kamus.loaderconfig.db.repository;
 
 import com.kamus.loaderconfig.db.model.RepositoryId;
 import com.kamus.loaderconfig.db.model.TrackedRepository;

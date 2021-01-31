@@ -7,10 +7,6 @@ package com.kamus.loaderconfig.grpcjava;
 option java_multiple_files = true;
 option java_package = "com.kamus.loaderconfig.grpcjava";
 
-message LoaderConfiguration {
-  repeated com.kamus.common.grpcjava.Repository repository = 1;
-}
-
 message TrackRepositoryRequest {
   com.kamus.common.grpcjava.Repository repository = 1;
 }
@@ -33,18 +29,8 @@ message GetTrackedRepositoriesResponse {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
 }
 
-message GetLoaderConfigurationRequest {
-
-}
-
-message GetLoaderConfigurationResponse {
-  LoaderConfiguration loaderConfiguration = 1;
-}
-
 service LoaderConfigurationService {
   rpc trackRepository(TrackRepositoryRequest) returns (TrackRepositoryResponse);
   rpc untrackRepository(UntrackRepositoryRequest) returns (UntrackRepositoryResponse);
   rpc getTrackedRepositories(GetTrackedRepositoriesRequest) returns (GetTrackedRepositoriesResponse);
-
-  rpc getLoaderConfiguration(GetLoaderConfigurationRequest) returns (GetLoaderConfigurationResponse);
 }

@@ -59,11 +59,6 @@ public class LoaderConfigurationServiceImpl extends LoaderConfigurationServiceGr
         responseObserver.onCompleted();
     }
 
-    @Override
-    public void getLoaderConfiguration(GetLoaderConfigurationRequest request, StreamObserver<GetLoaderConfigurationResponse> responseObserver) {
-        super.getLoaderConfiguration(request, responseObserver);
-    }
-
     private void validateRepository(Repository repository) {
         Preconditions.checkArgument(Strings.isNotBlank(repository.getName()), Strings.isNotBlank(repository.getOwner()));
     }

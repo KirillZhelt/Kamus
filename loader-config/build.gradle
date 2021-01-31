@@ -14,6 +14,7 @@ repositories {
 
 dependencies {
 	implementation project(':proto')
+	implementation project(':core:spring-grpc')
 
 	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
 	implementation 'io.grpc:grpc-protobuf:1.33.1'
@@ -25,6 +26,13 @@ dependencies {
 	runtimeOnly 'mysql:mysql-connector-java'
 
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	implementation('org.apache.curator:curator-x-async:4.0.1') {
+		exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+	}
+	implementation('org.apache.zookeeper:zookeeper:3.4.11') {
+		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+	}
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

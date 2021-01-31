@@ -1,12 +1,17 @@
-package com.kamus.loaderconfig.grpc;
+package com.kamus.core.spring.grpc;
 
+import com.google.common.base.Preconditions;
 import io.grpc.Server;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -23,16 +28,29 @@ public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
     private final Server grpcServer;
     private final CountDownLatch latch;
 
-    public GrpcServerRunner(Server grpcServer) {
-        this.grpcServer = grpcServer;
+    private final ApplicationEventPublisher eventPublisher;
 
+    public GrpcServerRunner(@Nonnull Server grpcServer) {
+        this(grpcServer, null);
+    }
+
+    public GrpcServerRunner(@Nonnull Server grpcServer, @Nullable ApplicationEventPublisher eventPublisher) {
+        Preconditions.checkNotNull(grpcServer);
+
+        this.grpcServer = grpcServer;
         this.latch = new CountDownLatch(1);
+
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
     public void run(String... args) throws Exception {
         grpcServer.start();
         logger.info("gRPC server is started!");
+
+        if (Objects.nonNull(eventPublisher)) {
+            eventPublisher.publishEvent(new GrpcServerStartedEvent(this));
+        }
 
         startAwaitThread();
     }

@@ -1,7 +1,14 @@
 rootProject.name = 'Kamus'
 
 include 'data-loader'
-include 'core-common'
 include 'proto'
 include 'loader-config'
 include 'commits-analyzer'
+include 'core'
+include 'core:core-common'
+findProject(':core:core-common')?.name = 'core-common'
+include 'core:zookeeper'
+findProject(':core:zookeeper')?.name = 'zookeeper'
+include 'core:spring-grpc'
+findProject(':core:spring-grpc')?.name = 'spring-grpc'
+
