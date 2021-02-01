@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
+import javax.annotation.PreDestroy;
 import java.net.InetAddress;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,6 +48,12 @@ public class ZookeeperConfig {
 
         ZkAnnouncer announcer = zkAnnouncer();
         announcer.announce(new EndpointsZkAnnouncement(serviceName, endpointsToAnnounce));
+    }
+
+    @PreDestroy
+    public void disconnect() {
+        ZkAnnouncer announcer = zkAnnouncer();
+        announcer.disconnect();
     }
 
 }

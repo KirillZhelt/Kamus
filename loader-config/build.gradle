@@ -15,6 +15,7 @@ repositories {
 dependencies {
 	implementation project(':proto')
 	implementation project(':core:spring-grpc')
+	implementation project(':core:zookeeper')
 
 	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
 	implementation 'io.grpc:grpc-protobuf:1.33.1'
@@ -27,10 +28,17 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	implementation('org.apache.curator:curator-x-async:4.0.1') {
+	implementation "com.fasterxml.jackson.core:jackson-databind:2.11.1"
+
+	implementation('org.apache.curator:curator-recipes:4.3.0') {
 		exclude group: 'org.apache.zookeeper', module: 'zookeeper'
 	}
-	implementation('org.apache.zookeeper:zookeeper:3.4.11') {
+
+	implementation('org.apache.curator:curator-x-async:4.3.0') {
+		exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+	}
+
+	implementation('org.apache.zookeeper:zookeeper:3.5.8') {
 		exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 	}
 

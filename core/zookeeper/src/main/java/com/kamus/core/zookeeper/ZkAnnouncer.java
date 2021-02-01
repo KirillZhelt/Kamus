@@ -19,10 +19,13 @@ public class ZkAnnouncer {
 
     private static final Logger logger = LoggerFactory.getLogger(ZkAnnouncer.class);
 
+    private final CuratorFramework curatorFramework;
+
     private final AsyncCuratorFrameworkDsl zkClient;
 
     private ZkAnnouncer(String zkUrl, RetryPolicy retryPolicy) {
-        this.zkClient = createZkClient(zkUrl, retryPolicy);
+        this.curatorFramework = createCurator(zkUrl, retryPolicy);
+        this.zkClient = AsyncCuratorFramework.wrap(this.curatorFramework);
     }
 
     public static ZkAnnouncerBuilder newBuilder(String zkUrl) {
@@ -42,6 +45,10 @@ public class ZkAnnouncer {
                 })
                 .toCompletableFuture()
                 .get();
+    }
+
+    public void disconnect() {
+        curatorFramework.close();
     }
 
     public static class ZkAnnouncerBuilder {
@@ -69,10 +76,10 @@ public class ZkAnnouncer {
 
     }
 
-    private AsyncCuratorFrameworkDsl createZkClient(String zookeeperUrl, RetryPolicy retryPolicy) {
-        CuratorFramework client = CuratorFrameworkFactory.newClient(zookeeperUrl, retryPolicy);
+    private CuratorFramework createCurator(String zkUrl, RetryPolicy retryPolicy) {
+        CuratorFramework client = CuratorFrameworkFactory.newClient(zkUrl, retryPolicy);
         client.start();
-        return AsyncCuratorFramework.wrap(client);
+        return client;
     }
 
 }
