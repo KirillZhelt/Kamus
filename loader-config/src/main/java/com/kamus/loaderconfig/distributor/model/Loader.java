@@ -7,19 +7,23 @@ import java.util.Objects;
 
 public class Loader {
 
-    private final String path;
+    private final LoaderId id;
     private final Endpoints endpoints;
 
     public Loader(String path, Endpoints endpoints) {
-        Preconditions.checkNotNull(path);
+        this(new LoaderId(path), endpoints);
+    }
+
+    public Loader(LoaderId loaderId, Endpoints endpoints) {
+        Preconditions.checkNotNull(loaderId);
         Preconditions.checkNotNull(endpoints);
 
-        this.path = path;
+        this.id = loaderId;
         this.endpoints = endpoints;
     }
 
-    public String getPath() {
-        return path;
+    public LoaderId getId() {
+        return id;
     }
 
     public Endpoints getEndpoints() {
@@ -31,21 +35,20 @@ public class Loader {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Loader loader = (Loader) o;
-        return path.equals(loader.path) &&
-                       endpoints.equals(loader.endpoints);
+        return Objects.equals(id, loader.id) &&
+                       Objects.equals(endpoints, loader.endpoints);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(path, endpoints);
+        return Objects.hash(id, endpoints);
     }
 
     @Override
     public String toString() {
         return "Loader{" +
-                       "path='" + path + '\'' +
+                       "id=" + id +
                        ", endpoints=" + endpoints +
                        '}';
     }
-
 }

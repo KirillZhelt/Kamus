@@ -3,16 +3,14 @@ package com.kamus.loaderconfig.distributor;
 import com.kamus.dataloader.grpcjava.DataLoaderServiceGrpc;
 import com.kamus.dataloader.grpcjava.DataLoaderServiceGrpc.DataLoaderServiceFutureStub;
 import com.kamus.loaderconfig.distributor.model.Loader;
+import com.kamus.loaderconfig.distributor.model.LoaderId;
 import com.kamus.loaderconfig.grpc.DataLoaderStubFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -20,16 +18,17 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
 
     private final DataLoaderStubFactory stubFactory;
     private final ActiveLoadersWatcher loadersWatcher;
-    private final SourcesDistributor sourcesDistributor;
+    private final BucketsDistributor bucketsDistributor;
 
-    private final Map<String, DataLoaderServiceFutureStub> loaderStubs = new HashMap<>();
+    private final Set<Loader> activeLoaders = new HashSet<>();
+    private final Map<LoaderId, DataLoaderServiceFutureStub> loaderStubs = new HashMap<>();
 
     @Autowired
     public DataLoadersCoordinator(DataLoaderStubFactory stubFactory, ActiveLoadersWatcher loadersWatcher,
-                                  SourcesDistributor sourcesDistributor) {
+                                  BucketsDistributor bucketsDistributor) {
         this.stubFactory = stubFactory;
         this.loadersWatcher = loadersWatcher;
-        this.sourcesDistributor = sourcesDistributor;
+        this.bucketsDistributor = bucketsDistributor;
     }
 
     @PostConstruct
@@ -44,28 +43,36 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
 
     @Override
     public void onLoadersInit(Set<Loader> loaders) {
-        if (!loaderStubs.isEmpty()) {
+        if (!activeLoaders.isEmpty()) {
             throw new IllegalStateException("active data-loaders map is not empty!");
         }
 
-        Map<String, DataLoaderServiceFutureStub> newLoaderStubs =
-                loaders.stream().collect(Collectors.toMap(Loader::getPath, this::createDataLoaderStub));
+        activeLoaders.addAll(loaders);
+
+        Map<LoaderId, DataLoaderServiceFutureStub> newLoaderStubs =
+                loaders.stream().collect(Collectors.toMap(
+                        Loader::getId,
+                        this::createDataLoaderStub));
 
         loaderStubs.putAll(newLoaderStubs);
     }
 
     @Override
     public void onLoaderAdded(Loader loader) {
-        if (Objects.nonNull(loaderStubs.put(loader.getPath(), createDataLoaderStub(loader)))) {
+        if (!activeLoaders.add(loader)) {
             throw new IllegalStateException("data-loader already existed: " +  loader.toString());
         }
+
+        loaderStubs.put(loader.getId(), createDataLoaderStub(loader));
     }
 
     @Override
-    public void onLoaderRemoved(String path) {
-        if (Objects.isNull(loaderStubs.remove(path))) {
-            throw new IllegalStateException("data-loader with the given path doesn't exists: " + path);
+    public void onLoaderRemoved(LoaderId loaderId) {
+        if (!activeLoaders.removeIf(loader -> loader.getId().equals(loaderId))) {
+            throw new IllegalStateException("data-loader does not exist: " +  loaderId.toString());
         }
+
+        loaderStubs.remove(loaderId);
     }
 
     private DataLoaderServiceFutureStub createDataLoaderStub(Loader loader) {

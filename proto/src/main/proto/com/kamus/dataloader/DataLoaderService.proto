@@ -9,18 +9,20 @@ option java_package = "com.kamus.dataloader.grpcjava";
 
 message LoaderConfiguration {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
+  int32 bucket = 2;
 }
 
-message LoaderConfigurationRequest {
-  LoaderConfiguration configuration = 1;
+message SetSourcesRequest {
+  repeated LoaderConfiguration configurationBucket = 1;
 }
 
-message LoaderConfigurationResponse {
+message SetSourcesResponse {
 
 }
 
 message AddRepositoryRequest {
   com.kamus.common.grpcjava.Repository repository = 1;
+  int32 bucket = 2;
 }
 
 message AddRepositoryResponse {
@@ -29,6 +31,7 @@ message AddRepositoryResponse {
 
 message RemoveRepositoryRequest {
   com.kamus.common.grpcjava.Repository repository = 1;
+  int32 bucket = 2;
 }
 
 message RemoveRepositoryResponse {
@@ -37,6 +40,7 @@ message RemoveRepositoryResponse {
 
 message AddRepositoriesRequest {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
+  int32 bucket = 2;
 }
 
 message AddRepositoriesResponse {
@@ -45,6 +49,7 @@ message AddRepositoriesResponse {
 
 message RemoveRepositoriesRequest {
   repeated com.kamus.common.grpcjava.Repository repository = 1;
+  int32 bucket = 2;
 }
 
 message RemoveRepositoriesResponse {
@@ -52,7 +57,7 @@ message RemoveRepositoriesResponse {
 }
 
 service DataLoaderService {
-  rpc setSources(LoaderConfigurationRequest) returns (LoaderConfigurationResponse);
+  rpc setSources(SetSourcesRequest) returns (SetSourcesResponse);
 
   rpc addRepository(AddRepositoryRequest) returns (AddRepositoryResponse);
   rpc removeRepository(AddRepositoryRequest) returns (AddRepositoryResponse);

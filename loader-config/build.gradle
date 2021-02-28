@@ -43,6 +43,7 @@ dependencies {
 	}
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation "org.testcontainers:mysql:1.15.2"
 }
 
 test {

@@ -14,4 +14,9 @@ public class LoaderConfigConfig {
         return new ObjectMapper();
     }
 
+    @Bean
+    public int bucketCount() {
+        return 256;
+    }
+
 }

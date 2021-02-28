@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.kamus.core.zookeeper.Endpoints;
 import com.kamus.loaderconfig.distributor.model.Loader;
+import com.kamus.loaderconfig.distributor.model.LoaderId;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -106,7 +107,7 @@ public class ActiveLoadersWatcher {
                     case CHILD_REMOVED: {
                         String path = event.getData().getPath();
                         logger.info("data-loader is removed: " + path);
-                        subscribers.forEach(subscriber -> subscriber.onLoaderRemoved(path));
+                        subscribers.forEach(subscriber -> subscriber.onLoaderRemoved(new LoaderId(path)));
 
                         break;
                     }
