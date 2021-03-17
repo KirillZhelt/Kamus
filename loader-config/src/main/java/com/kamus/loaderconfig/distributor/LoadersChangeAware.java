@@ -1,7 +1,7 @@
 package com.kamus.loaderconfig.distributor;
 
-import com.kamus.loaderconfig.distributor.model.Loader;
-import com.kamus.loaderconfig.distributor.model.LoaderId;
+import com.kamus.core.model.Loader;
+import com.kamus.core.model.LoaderId;
 
 import java.util.Set;
 

@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class BucketsDistribution {
@@ -64,4 +65,16 @@ public class BucketsDistribution {
         return bucketsRemoved;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BucketsDistribution that = (BucketsDistribution) o;
+        return Objects.equals(assignedBuckets, that.assignedBuckets);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(assignedBuckets);
+    }
 }

@@ -1,6 +1,7 @@
 package com.kamus.dataloader.db.model;
 
 import com.google.common.base.Preconditions;
+import com.kamus.core.db.RepositoryId;
 
 import javax.persistence.CascadeType;
 import javax.persistence.EmbeddedId;
@@ -18,9 +19,6 @@ public class LatestCommit {
     private String sha;
 
     private LocalDateTime commitDate;
-
-    @OneToMany(mappedBy = "latestCommit", cascade = { CascadeType.ALL })
-    private Set<LoadedCommit> loadedCommits;
 
     protected LatestCommit() {
 
@@ -58,14 +56,6 @@ public class LatestCommit {
 
     public void setCommitDate(LocalDateTime commitDate) {
         this.commitDate = commitDate;
-    }
-
-    public Set<LoadedCommit> getLoadedCommits() {
-        return loadedCommits;
-    }
-
-    public void setLoadedCommits(Set<LoadedCommit> loadedCommits) {
-        this.loadedCommits = loadedCommits;
     }
 
 }

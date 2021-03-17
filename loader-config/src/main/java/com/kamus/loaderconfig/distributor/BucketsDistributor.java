@@ -1,17 +1,15 @@
 package com.kamus.loaderconfig.distributor;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.kamus.loaderconfig.db.model.DistributedBucket;
 import com.kamus.loaderconfig.distributor.model.AssignedBucketsInterval;
 import com.kamus.loaderconfig.distributor.model.BucketsDistribution;
-import com.kamus.loaderconfig.distributor.model.LoaderId;
+import com.kamus.core.model.LoaderId;
 import com.kamus.loaderconfig.service.BucketsService;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
@@ -49,15 +47,20 @@ public class BucketsDistributor {
         }
     }
 
-    public Map<LoaderId, BucketsDistribution> distributeOnLoaderAdded(LoaderId loader) {
-        return null;
+    public Map<LoaderId, BucketsDistribution> distributeOnLoaderAdded(LoaderId loader, Set<LoaderId> activeLoaders) {
+        return distribute(activeLoaders);
     }
 
-    public Map<LoaderId, BucketsDistribution> distributeOnLoaderRemoved(LoaderId loader) {
-        return null;
+    public Map<LoaderId, BucketsDistribution> distributeOnLoaderRemoved(LoaderId loader, Set<LoaderId> activeLoaders) {
+        return distribute(activeLoaders);
     }
 
-    private Map<LoaderId, BucketsDistribution> distribute(Set<LoaderId> activeLoaders) {
+    @VisibleForTesting
+    Map<LoaderId, BucketsDistribution> distribute(Set<LoaderId> activeLoaders) {
+        if (activeLoaders.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
         Map<LoaderId, BucketsDistribution> distribution = new HashMap<>();
 
         int bucketsCountForEachLoader = bucketCount / activeLoaders.size();

@@ -2,8 +2,9 @@ package com.kamus.loaderconfig.distributor;
 
 import com.kamus.dataloader.grpcjava.DataLoaderServiceGrpc;
 import com.kamus.dataloader.grpcjava.DataLoaderServiceGrpc.DataLoaderServiceFutureStub;
-import com.kamus.loaderconfig.distributor.model.Loader;
-import com.kamus.loaderconfig.distributor.model.LoaderId;
+import com.kamus.loaderconfig.distributor.model.BucketsDistribution;
+import com.kamus.core.model.Loader;
+import com.kamus.core.model.LoaderId;
 import com.kamus.loaderconfig.grpc.DataLoaderStubFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,16 +20,18 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
     private final DataLoaderStubFactory stubFactory;
     private final ActiveLoadersWatcher loadersWatcher;
     private final BucketsDistributor bucketsDistributor;
+    private final LoaderUpdater loaderUpdater;
 
     private final Set<Loader> activeLoaders = new HashSet<>();
     private final Map<LoaderId, DataLoaderServiceFutureStub> loaderStubs = new HashMap<>();
 
     @Autowired
     public DataLoadersCoordinator(DataLoaderStubFactory stubFactory, ActiveLoadersWatcher loadersWatcher,
-                                  BucketsDistributor bucketsDistributor) {
+                                  BucketsDistributor bucketsDistributor, LoaderUpdater updater) {
         this.stubFactory = stubFactory;
         this.loadersWatcher = loadersWatcher;
         this.bucketsDistributor = bucketsDistributor;
+        this.loaderUpdater = updater;
     }
 
     @PostConstruct
@@ -55,6 +58,8 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
                         this::createDataLoaderStub));
 
         loaderStubs.putAll(newLoaderStubs);
+
+        updateLoaders(bucketsDistributor.distributeOnLoadersInit(newLoaderStubs.keySet()));
     }
 
     @Override
@@ -64,6 +69,8 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
         }
 
         loaderStubs.put(loader.getId(), createDataLoaderStub(loader));
+
+        updateLoaders(bucketsDistributor.distributeOnLoaderAdded(loader.getId(), loaderStubs.keySet()));
     }
 
     @Override
@@ -73,6 +80,18 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
         }
 
         loaderStubs.remove(loaderId);
+
+        updateLoaders(bucketsDistributor.distributeOnLoaderRemoved(loaderId, loaderStubs.keySet()));
+    }
+
+    public Optional<Loader> getLoaderById(LoaderId id) {
+        return activeLoaders.stream().filter(loader -> loader.getId().equals(id)).findFirst();
+    }
+
+    private void updateLoaders(Map<LoaderId, BucketsDistribution> distributionMap) {
+        distributionMap.forEach((id, distribution) -> {
+            loaderUpdater.updateLoader(loaderStubs.get(id), distribution);
+        });
     }
 
     private DataLoaderServiceFutureStub createDataLoaderStub(Loader loader) {

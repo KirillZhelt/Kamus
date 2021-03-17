@@ -24,6 +24,7 @@ dependencies {
 	implementation project(':proto')
 	implementation project(':core:zookeeper')
 	implementation project(':core:spring-grpc')
+	implementation project(':core:core-common')
 
 	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
 	implementation 'io.grpc:grpc-protobuf:1.33.1'

@@ -48,6 +48,20 @@ public class AssignedBucketsInterval implements AssignedBuckets {
         return new IntervalIterator(startBucket, endBucket);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AssignedBucketsInterval integers = (AssignedBucketsInterval) o;
+        return startBucket == integers.startBucket &&
+                       endBucket == integers.endBucket;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(startBucket, endBucket);
+    }
+
     private static void checkSerialInterval(SortedSet<DistributedBucket> buckets) {
         Preconditions.checkNotNull(buckets);
         Preconditions.checkArgument(buckets.size() > 0, "to create an interval you should pass at least 1 bucket");

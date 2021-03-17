@@ -5,6 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @Configuration
 @PropertySource("classpath:secrets.properties")
 public class LoaderConfigConfig {
@@ -17,6 +20,11 @@ public class LoaderConfigConfig {
     @Bean
     public int bucketCount() {
         return 256;
+    }
+
+    @Bean
+    public Executor loaderUpdatesExecutor() {
+        return Executors.newFixedThreadPool(5);
     }
 
 }

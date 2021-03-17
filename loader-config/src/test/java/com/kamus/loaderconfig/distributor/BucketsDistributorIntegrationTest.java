@@ -1,13 +1,13 @@
-package com.kamus.loaderconfig.integration.distributor;
+package com.kamus.loaderconfig.distributor;
 
 import com.google.common.collect.ImmutableSet;
 import com.kamus.loaderconfig.db.model.DistributedBucket;
 import com.kamus.loaderconfig.db.repository.DistributedBucketRepository;
-import com.kamus.loaderconfig.distributor.BucketsDistributor;
 import com.kamus.loaderconfig.distributor.model.AssignedBucketsInterval;
 import com.kamus.loaderconfig.distributor.model.BucketsDistribution;
-import com.kamus.loaderconfig.distributor.model.LoaderId;
-import com.kamus.loaderconfig.integration.distributor.config.DistributorTestConfig;
+import com.kamus.core.model.LoaderId;
+import com.kamus.loaderconfig.distributor.config.DistributorTestConfig;
+import com.kamus.loaderconfig.integration.MysqlIntegrationTestsContainer;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -44,7 +44,7 @@ public class BucketsDistributorIntegrationTest {
     public void testFirstEverDistributionOnInit_NoLoaders() {
         Set<LoaderId> loaders = Collections.emptySet();
 
-        Map<LoaderId, BucketsDistribution> distribution = distributor.distributeOnLoadersInit(loaders);
+        Map<LoaderId, BucketsDistribution> distribution = distributor.distribute(loaders);
 
         assertThat(distribution).hasSize(0);
     }
@@ -58,7 +58,7 @@ public class BucketsDistributorIntegrationTest {
 
         Set<LoaderId> loaders = ImmutableSet.of(l1, l2, l3, l4);
 
-        Map<LoaderId, BucketsDistribution> distribution = distributor.distributeOnLoadersInit(loaders);
+        Map<LoaderId, BucketsDistribution> distribution = distributor.distribute(loaders);
 
         assertThat(distribution).hasSize(4);
 
@@ -110,7 +110,7 @@ public class BucketsDistributorIntegrationTest {
 
         Set<LoaderId> loaders = ImmutableSet.of(l1, l2, l3, l4, l5);
 
-        Map<LoaderId, BucketsDistribution> distribution = distributor.distributeOnLoadersInit(loaders);
+        Map<LoaderId, BucketsDistribution> distribution = distributor.distribute(loaders);
 
         assertThat(distribution).hasSize(5);
 

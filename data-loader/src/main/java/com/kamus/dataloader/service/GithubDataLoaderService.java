@@ -3,8 +3,8 @@ package com.kamus.dataloader.service;
 import com.google.common.collect.ImmutableList;
 import com.kamus.common.grpcjava.Commit;
 import com.kamus.common.grpcjava.Repository;
+import com.kamus.core.db.RepositoryId;
 import com.kamus.dataloader.db.model.LatestCommit;
-import com.kamus.dataloader.db.model.RepositoryId;
 import com.kamus.dataloader.db.repostitory.LatestCommitRepository;
 import com.kamus.dataloader.queries.GetCommitsPaginatedQuery;
 import com.kamus.dataloader.queries.GetCommitsPaginatedWithUntilQuery;
@@ -30,6 +30,14 @@ public class GithubDataLoaderService {
     public GithubDataLoaderService(GraphQLObservableTemplate githubTemplate, LatestCommitRepository latestCommitRepository) {
         this.githubTemplate = githubTemplate;
         this.latestCommitRepository = latestCommitRepository;
+    }
+
+    public Single<List<Commit>> getNewCommits(Set<Repository> repositories) {
+        List<Single<List<Commit>>> newCommitsSingles = repositories.stream()
+                                                               .map(this::getNewCommits).collect(Collectors.toList());
+        return Single.merge(newCommitsSingles)
+                       .toList(repositories.size())
+                       .map(ll -> ll.stream().flatMap(List::stream).collect(Collectors.toList()));
     }
 
     public Single<List<Commit>> getNewCommits(Repository repository) {

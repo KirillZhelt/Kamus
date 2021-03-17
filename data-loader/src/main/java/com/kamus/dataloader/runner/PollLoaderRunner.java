@@ -1,24 +1,22 @@
 package com.kamus.dataloader.runner;
 
-import com.kamus.common.grpcjava.Commit;
 import com.kamus.common.grpcjava.Repository;
-import com.kamus.dataloader.db.model.CommitInfo;
-import com.kamus.dataloader.db.model.LatestCommit;
-import com.kamus.dataloader.db.model.LoadedCommit;
-import com.kamus.dataloader.db.model.RepositoryId;
-import com.kamus.dataloader.db.repostitory.LatestCommitRepository;
+import com.kamus.dataloader.grpcjava.LoaderConfiguration;
+import com.kamus.dataloader.service.CommitsPusherService;
 import com.kamus.dataloader.service.GithubDataLoaderService;
 import com.kamus.dataloader.service.LoaderConfigurationService;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.CompositeDisposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Component
@@ -28,80 +26,64 @@ public class PollLoaderRunner {
 
     private final LoaderConfigurationService configurationUpdater;
     private final GithubDataLoaderService loaderService;
-    private final LatestCommitRepository latestCommitRepository;
+    private final CommitsPusherService commitsPusherService;
+
+    private final AtomicBoolean pollInProgress = new AtomicBoolean(false);
 
     private final CompositeDisposable compositeDisposable = new CompositeDisposable();
 
     public PollLoaderRunner(GithubDataLoaderService loaderService, LoaderConfigurationService configurationUpdater,
-                            LatestCommitRepository latestCommitRepository) {
+                            CommitsPusherService commitsPusherService) {
         this.loaderService = loaderService;
         this.configurationUpdater = configurationUpdater;
-        this.latestCommitRepository = latestCommitRepository;
+        this.commitsPusherService = commitsPusherService;
     }
 
-//    @Scheduled(fixedDelay = 1000)
-//    public void scheduledPoll() {
-//        // TODO: load new repos info according to the config and put it in kafka
-//        // 1. load config or update if needed
-//        // 2. load data according to config
-//        // 3. put new messages in kafka
-////        LoaderConfiguration configuration = configurationUpdater.getCurrentConfiguration();
-////        configuration.getRepositoryList().stream().map(repo -> {
-////            loaderService.
-////        });
-//
-//        logger.info("scheduledPoll()");
-//    }
+    @Scheduled(fixedDelay = 5000)
+    public void scheduledPoll() {
+        logger.info("scheduledPoll()");
 
-    public void poll() {
-        compositeDisposable.add(
-                loaderService.getNewCommits(Repository.newBuilder().setOwner("KirillZhelt").setName("MayMayMay").build())
-                        .subscribe(this::writeCommitsToDb,
-                                e -> logger.error("Error while getting commits for the repository: " + e.toString()))
-        );
-    }
-
-    private void writeCommitsToDb(List<Commit> commits) {
-        if (commits.isEmpty()) {
-            logger.info("No new commits!");
+        Set<LoaderConfiguration> configuration = configurationUpdater.getCurrentConfiguration();
+        if (configuration.isEmpty()) {
+            logger.info("Loader configuration is empty. Skipping the polls.");
         } else {
-            Commit latestCommit = commits.get(0);
-            LatestCommit commit = new LatestCommit(
-                    new RepositoryId(latestCommit.getRepository().getOwner(), latestCommit.getRepository().getName()),
-                    latestCommit.getSha(),
-                    toLocalDateTime(latestCommit.getCommitDate())
-            );
-
-            Set<LoadedCommit> loadedCommits = commits.stream().map(c -> new LoadedCommit(
-                    commit,
-                    c.getSha(),
-                    new CommitInfo(
-                            c.getRepository().getName(),
-                            c.getRepository().getOwner(),
-                            c.getStats().getAdditions(),
-                            c.getStats().getDeletions(),
-                            c.getStats().getChangedFiles(),
-                            c.getAuthorName(),
-                            c.getAuthorEmail(),
-                            toLocalDateTime(c.getCommitDate())
-                    )
-            )).collect(Collectors.toSet());
-
-            commit.setLoadedCommits(loadedCommits);
-            latestCommitRepository.save(commit);
+            pollBuckets(configuration);
         }
     }
 
-    private static LocalDateTime toLocalDateTime(String date) {
-        return LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME);
+    private void pollBuckets(Set<LoaderConfiguration> bucketsConfiguration) {
+        if (pollInProgress.compareAndSet(false, true)) {
+            List<Single<Object>> pollSingles = bucketsConfiguration.stream().map(this::poll).collect(Collectors.toList());
+
+            compositeDisposable.add(
+                    Single.merge(pollSingles).toList(bucketsConfiguration.size()).subscribe(
+                            r -> pollInProgress.set(false),
+                            e -> logger.error("Exception occured while polling the buckets: {}", e.toString())
+                    )
+            );
+        } else {
+            logger.warn("Poll is still in progress. Skipping the poll on the current scheduled run.");
+        }
     }
 
-//    private void sendCommitsToKafka(List<Commit> commits) {
-//        commits.forEach(commit -> compositeDisposable.add(
-//                Observable.fromFuture(kafkaTemplate.send(KafkaConfig.COMMITS_TOPIC_NAME, RepositoryCommitMessage.newBuilder().setCommit(commit).build()))
-//                        .subscribe(r -> {}, e -> logger.error("Wasn't able to send a commit: " + e.toString()))
-//        ));
-//    }
+    private Single<Object> poll(LoaderConfiguration configuration) {
+        Set<Repository> repositories = new HashSet<>(configuration.getRepositoryList());
+
+        logger.info("Polling repositories: {}, for bucket: {}", repositories, configuration.getBucket());
+
+        return loaderService.getNewCommits(repositories)
+                                                .flatMap(commits -> {
+                                                    if (commits.isEmpty()) {
+                                                        logger.info("No new commits to push for repos: {}", repositories);
+                                                        return Single.just(CommitsPusherService.SUCCESS);
+                                                    } else {
+                                                        return commitsPusherService.pushCommits(commits);
+                                                    }
+                                                })
+                       .doOnSuccess(c -> logger.info("Poll for bucket {} completed successfully", configuration.getBucket()))
+                       .doOnError(e -> logger.error("Error while getting commits for the bucket: {}. Exception occured: {}",
+                               configuration.getBucket(), e.toString()));
+    }
 
     @PreDestroy
     public void dispose() {

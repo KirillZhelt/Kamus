@@ -1,5 +1,5 @@
 plugins {
-	id 'org.springframework.boot' version '2.4.1'
+	id 'org.springframework.boot' version '2.3.6.RELEASE'
 	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
 	id 'java'
 }
@@ -10,12 +10,16 @@ sourceCompatibility = '11'
 
 repositories {
 	mavenCentral()
+	maven {
+		url 'https://packages.confluent.io/maven/'
+	}
 }
 
 dependencies {
 	implementation project(':proto')
 	implementation project(':core:spring-grpc')
 	implementation project(':core:zookeeper')
+	implementation project(':core:core-common')
 
 	implementation 'io.grpc:grpc-netty-shaded:1.33.1'
 	implementation 'io.grpc:grpc-protobuf:1.33.1'
@@ -29,6 +33,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	implementation "com.fasterxml.jackson.core:jackson-databind:2.11.1"
+
+	implementation 'org.springframework.kafka:spring-kafka'
+	implementation 'io.confluent:kafka-protobuf-serializer:6.0.0'
 
 	implementation('org.apache.curator:curator-recipes:4.3.0') {
 		exclude group: 'org.apache.zookeeper', module: 'zookeeper'

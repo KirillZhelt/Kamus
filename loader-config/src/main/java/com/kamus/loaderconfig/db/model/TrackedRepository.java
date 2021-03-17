@@ -1,6 +1,7 @@
 package com.kamus.loaderconfig.db.model;
 
 import com.google.common.base.Preconditions;
+import com.kamus.core.db.RepositoryId;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -10,6 +11,8 @@ public class TrackedRepository {
 
     @EmbeddedId
     private RepositoryId id;
+
+    private int bucketId;
 
     // reflects how often the repository is updated
     // used for partitioning the repositories into loader configurations
@@ -22,11 +25,14 @@ public class TrackedRepository {
 
     }
 
-    public TrackedRepository(RepositoryId id, int metric, boolean tracked) {
+    public TrackedRepository(RepositoryId id, int bucketId, int metric, boolean tracked) {
         Preconditions.checkNotNull(id);
         Preconditions.checkArgument(metric >= 1 && metric <= 100, "metric should be in [1; 100]");
+        Preconditions.checkArgument(bucketId >= 0, "bucketId shouldn't be negative");
 
         this.id = id;
+        this.bucketId = bucketId;
+
         this.metric = metric;
         this.tracked = tracked;
     }
@@ -37,6 +43,14 @@ public class TrackedRepository {
 
     public void setId(RepositoryId id) {
         this.id = id;
+    }
+
+    public int getBucketId() {
+        return bucketId;
+    }
+
+    public void setBucketId(int bucketId) {
+        this.bucketId = bucketId;
     }
 
     public int getMetric() {
@@ -53,5 +67,9 @@ public class TrackedRepository {
 
     public void setTracked(boolean tracked) {
         this.tracked = tracked;
+    }
+
+    public interface RepositoryIdView {
+        RepositoryId getId();
     }
 }

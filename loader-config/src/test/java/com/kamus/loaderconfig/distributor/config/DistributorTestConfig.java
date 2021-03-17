@@ -1,4 +1,4 @@
-package com.kamus.loaderconfig.integration.distributor.config;
+package com.kamus.loaderconfig.distributor.config;
 
 import com.kamus.loaderconfig.db.repository.DistributedBucketRepository;
 import com.kamus.loaderconfig.distributor.BucketsDistributor;

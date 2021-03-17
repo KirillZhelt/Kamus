@@ -1,4 +1,4 @@
-package com.kamus.loaderconfig.integration.distributor;
+package com.kamus.loaderconfig.integration;
 
 import org.testcontainers.containers.MySQLContainer;
 

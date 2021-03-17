@@ -51,4 +51,10 @@ public class DistributedBucket {
 
     }
 
+    public interface LoaderIdProjection {
+
+        String getLoaderId();
+
+    }
+
 }

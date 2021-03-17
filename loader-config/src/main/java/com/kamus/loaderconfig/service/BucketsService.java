@@ -1,10 +1,11 @@
 package com.kamus.loaderconfig.service;
 
+import com.google.common.base.Preconditions;
+import com.kamus.core.model.BucketId;
+import com.kamus.core.model.LoaderId;
 import com.kamus.loaderconfig.db.model.DistributedBucket;
 import com.kamus.loaderconfig.db.repository.DistributedBucketRepository;
-import com.kamus.loaderconfig.distributor.model.AssignedBucketsInterval;
-import com.kamus.loaderconfig.distributor.model.BucketsDistribution;
-import com.kamus.loaderconfig.distributor.model.LoaderId;
+import com.kamus.loaderconfig.distributor.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -16,12 +17,14 @@ import java.util.stream.Stream;
 public class BucketsService {
 
     private final DistributedBucketRepository distributedBucketRepository;
+    private final int bucketCount;
 
     private final DistributedBucket.IdAscendingComparator bucketsComparator =
             new DistributedBucket.IdAscendingComparator();
 
-    public BucketsService(DistributedBucketRepository distributedBucketRepository) {
+    public BucketsService(DistributedBucketRepository distributedBucketRepository, int bucketCount) {
         this.distributedBucketRepository = distributedBucketRepository;
+        this.bucketCount = bucketCount;
     }
 
     public void saveBucketsDistribution(Map<LoaderId, BucketsDistribution> distribution) {
@@ -53,6 +56,16 @@ public class BucketsService {
                     b1.addAll(b2);
                     return b1;
                 }));
+    }
+
+    public LoaderId getLoaderForBucket(BucketId bucketId) {
+        Preconditions.checkArgument(bucketId.getBucketId() >= 0);
+        Preconditions.checkArgument(bucketId.getBucketId() < bucketCount);
+
+        return distributedBucketRepository.findByBucketId(bucketId.getBucketId())
+                       .map(DistributedBucket.LoaderIdProjection::getLoaderId)
+                       .map(LoaderId::new)
+                       .orElseThrow(() -> new IllegalStateException("Unreachable"));
     }
 
     private TreeSet<DistributedBucket> treeSetOf(DistributedBucket bucket) {
