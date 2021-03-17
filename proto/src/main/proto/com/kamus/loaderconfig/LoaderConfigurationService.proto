@@ -11,26 +11,31 @@ message TrackRepositoryRequest {
   com.kamus.common.grpcjava.Repository repository = 1;
 }
 
-message TrackRepositoryResponse {
-}
-
-message UntrackRepositoryRequest {
+message AssignedRepository {
   com.kamus.common.grpcjava.Repository repository = 1;
+  int32 bucketId = 2;
 }
 
-message UntrackRepositoryResponse {
+message GetLoaderForBucketRequest {
+  int32 bucketId = 1;
 }
 
-message GetTrackedRepositoriesRequest {
+message LoaderForBucket {
+  string loaderId = 1;
+  string loaderEndpoint = 2;
+}
+
+message NoActiveLoader {
 
 }
 
-message GetTrackedRepositoriesResponse {
-  repeated com.kamus.common.grpcjava.Repository repository = 1;
+message GetLoaderForBucketResponse {
+  oneof assignedLoaderOneOf {
+    LoaderForBucket loader = 1;
+    NoActiveLoader noActiveLoader = 2;
+  }
 }
 
 service LoaderConfigurationService {
-  rpc trackRepository(TrackRepositoryRequest) returns (TrackRepositoryResponse);
-  rpc untrackRepository(UntrackRepositoryRequest) returns (UntrackRepositoryResponse);
-  rpc getTrackedRepositories(GetTrackedRepositoriesRequest) returns (GetTrackedRepositoriesResponse);
+  rpc getLoaderForBucket(GetLoaderForBucketRequest) returns (GetLoaderForBucketResponse);
 }
