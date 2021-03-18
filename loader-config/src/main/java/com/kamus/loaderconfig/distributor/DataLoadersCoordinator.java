@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 public class DataLoadersCoordinator implements LoadersChangeAware {
 
     private final DataLoaderStubFactory stubFactory;
-    private final ActiveLoadersWatcher loadersWatcher;
     private final BucketsDistributor bucketsDistributor;
     private final LoaderUpdater loaderUpdater;
 
@@ -26,22 +25,12 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
     private final Map<LoaderId, DataLoaderServiceFutureStub> loaderStubs = new HashMap<>();
 
     @Autowired
-    public DataLoadersCoordinator(DataLoaderStubFactory stubFactory, ActiveLoadersWatcher loadersWatcher,
-                                  BucketsDistributor bucketsDistributor, LoaderUpdater updater) {
+    public DataLoadersCoordinator(DataLoaderStubFactory stubFactory,
+                                  BucketsDistributor bucketsDistributor,
+                                  LoaderUpdater updater) {
         this.stubFactory = stubFactory;
-        this.loadersWatcher = loadersWatcher;
         this.bucketsDistributor = bucketsDistributor;
         this.loaderUpdater = updater;
-    }
-
-    @PostConstruct
-    public void init() {
-        loadersWatcher.subscribe(this);
-    }
-
-    @PreDestroy
-    public void destroy() {
-        loadersWatcher.unsubscribe(this);
     }
 
     @Override

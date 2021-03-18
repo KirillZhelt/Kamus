@@ -12,6 +12,8 @@ import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,6 +29,8 @@ import java.util.Map;
 @EnableKafka
 @EnableKafkaStreams
 public class KafkaConfig {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(KafkaConfig.class);
 
     private static final String COMMITS_TOPIC = "kamus.commits.new";
 
@@ -61,7 +65,12 @@ public class KafkaConfig {
     public KStream<String, String> kStream(StreamsBuilder kStreamBuilder) {
         KStream<String, RepositoryCommitMessage> stream = kStreamBuilder
                                                  .stream(COMMITS_TOPIC, Consumed.with(Serdes.String(), commitSerde()));
-        KStream<String, String> shasStream = stream.mapValues(RepositoryCommitMessage::getCommit).mapValues(Commit::getSha);
+        KStream<String, String> shasStream = stream
+                                                     .mapValues(commitMessage -> {
+                                                         LOGGER.info("Consumed {}", commitMessage);
+                                                         return commitMessage.getCommit();
+                                                     })
+                                                     .mapValues(Commit::getSha);
         shasStream.to("kamus.commits.shas", Produced.with(Serdes.String(), Serdes.String()));
 
         return shasStream;

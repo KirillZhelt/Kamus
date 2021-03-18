@@ -68,6 +68,10 @@ public class BucketsService {
                        .orElseThrow(() -> new IllegalStateException("Unreachable"));
     }
 
+    public void clearDistribution() {
+        distributedBucketRepository.deleteAll();
+    }
+
     private TreeSet<DistributedBucket> treeSetOf(DistributedBucket bucket) {
         TreeSet<DistributedBucket> set = new TreeSet<>(bucketsComparator);
         set.add(bucket);

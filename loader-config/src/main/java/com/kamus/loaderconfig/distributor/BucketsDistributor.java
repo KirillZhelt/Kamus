@@ -7,6 +7,8 @@ import com.kamus.loaderconfig.distributor.model.AssignedBucketsInterval;
 import com.kamus.loaderconfig.distributor.model.BucketsDistribution;
 import com.kamus.core.model.LoaderId;
 import com.kamus.loaderconfig.service.BucketsService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class BucketsDistributor {
+
+    private static final Logger logger = LoggerFactory.getLogger(BucketsDistributor.class);
 
     private final BucketsService bucketsService;
     private final int bucketCount;
@@ -35,8 +39,12 @@ public class BucketsDistributor {
 
         // buckets count changed or set of active loaders changed
         if (distributedBuckets.size() != bucketCount || !savedLoaders.equals(activeLoaders)) {
+            logger.info("Rebalancing buckets between loaders.");
+
             return distribute(activeLoaders);
         } else {
+            logger.info("Bucket distribution hasn't changed!");
+
             return bucketsService.getBucketsForLoaders()
                            .entrySet()
                            .stream()
@@ -58,6 +66,9 @@ public class BucketsDistributor {
     @VisibleForTesting
     Map<LoaderId, BucketsDistribution> distribute(Set<LoaderId> activeLoaders) {
         if (activeLoaders.isEmpty()) {
+            logger.info("No active loaders. Clearing the distribution");
+
+            bucketsService.clearDistribution();
             return Collections.emptyMap();
         }
 

@@ -36,13 +36,19 @@ public class ActiveLoadersWatcher {
     private final CuratorFramework zkClient;
     private final PathChildrenCache loadersCache;
 
-    private final Set<LoadersChangeAware> subscribers = new HashSet<>();
+    private final Set<LoadersChangeAware> subscribers;
 
     private final ObjectMapper objectMapper;
 
-    public ActiveLoadersWatcher(@Value("${zookeeper.url}") String zkUrl, ObjectMapper objectMapper) {
+    private boolean isInitialized = false;
+
+    public ActiveLoadersWatcher(@Value("${zookeeper.url}") String zkUrl,
+                                Set<LoadersChangeAware> subscribers,
+                                ObjectMapper objectMapper) {
         this.zkClient = createZkClient(zkUrl, new RetryNTimes(5, 500));
         this.loadersCache = new PathChildrenCache(zkClient, LOADERS_PATH, true);
+
+        this.subscribers = subscribers;
 
         this.objectMapper = objectMapper;
 
@@ -89,26 +95,18 @@ public class ActiveLoadersWatcher {
                                                       })
                                                       .filter(Objects::nonNull)
                                                       .collect(Collectors.toSet());
-
-                        logger.info("data-loaders are initialized: " + loaders);
-                        subscribers.forEach(subscriber -> subscriber.onLoadersInit(loaders));
+                        callSubscribersOnInit(loaders);
 
                         break;
                     }
 
                     case CHILD_ADDED: {
-                        Loader loader = loaderFromEvent(event.getData());
-                        logger.info("New data-loader is added: " + loader);
-                        subscribers.forEach(subscriber -> subscriber.onLoaderAdded(loader));
-
+                        callSubscribersOnAdded(loaderFromEvent(event.getData()));
                         break;
                     }
 
                     case CHILD_REMOVED: {
-                        String path = event.getData().getPath();
-                        logger.info("data-loader is removed: " + path);
-                        subscribers.forEach(subscriber -> subscriber.onLoaderRemoved(new LoaderId(path)));
-
+                        callSubscribersRemoved(event.getData().getPath());
                         break;
                     }
 
@@ -121,6 +119,35 @@ public class ActiveLoadersWatcher {
         };
 
         loadersCache.getListenable().addListener(listener);
+    }
+
+    private void callSubscribersOnInit(Set<Loader> loaders) {
+        if (!isInitialized) {
+            logger.info("data-loaders are initialized: " + loaders);
+            subscribers.forEach(subscriber -> subscriber.onLoadersInit(loaders));
+
+            isInitialized = true;
+        } else {
+            throw new IllegalStateException("Loaders cache is already initialized");
+        }
+    }
+
+    private void callSubscribersOnAdded(Loader loader) {
+        if (isInitialized) {
+            logger.info("New data-loader is added: " + loader);
+            subscribers.forEach(subscriber -> subscriber.onLoaderAdded(loader));
+        }
+    }
+
+    private void callSubscribersRemoved(String path) {
+        if (isInitialized) {
+            logger.info("data-loader is removed: " + path);
+            subscribers.forEach(subscriber -> subscriber.onLoaderRemoved(new LoaderId(path)));
+        } else {
+            throw new IllegalStateException("callSubscribersRemoved cannot be called before loaders cache is initialized");
+        }
+
+
     }
 
     private CuratorFramework createZkClient(String zookeeperUrl, RetryPolicy retryPolicy) {
