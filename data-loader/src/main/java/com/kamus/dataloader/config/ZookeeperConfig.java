@@ -30,12 +30,6 @@ public class ZookeeperConfig {
         this.server = server;
     }
 
-    @Bean
-    public ZkAnnouncer zkAnnouncer() {
-        return ZkAnnouncer.newBuilder(zkUrl)
-                       .build();
-    }
-
     @EventListener
     public void announceGrpcServices(GrpcServerStartedEvent serverStarted) throws Exception {
         String url = InetAddress.getLocalHost().getHostAddress() + ":" + server.getPort();
@@ -46,14 +40,8 @@ public class ZookeeperConfig {
                                                                           service -> url));
         Endpoints endpointsToAnnounce = new Endpoints(endpoints);
 
-        ZkAnnouncer announcer = zkAnnouncer();
-        announcer.announce(new EndpointsZkAnnouncement(serviceName, endpointsToAnnounce));
-    }
-
-    @PreDestroy
-    public void disconnect() {
-        ZkAnnouncer announcer = zkAnnouncer();
-        announcer.disconnect();
+        ZkAnnouncer.newBuilder(zkUrl, new EndpointsZkAnnouncement(serviceName, endpointsToAnnounce))
+                .build();
     }
 
 }
