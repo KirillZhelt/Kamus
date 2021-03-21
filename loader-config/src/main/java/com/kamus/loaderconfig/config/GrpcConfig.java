@@ -17,6 +17,7 @@ public class GrpcConfig {
     @Bean
     public Server grpcServer(LoaderConfigurationServiceImplBase loaderConfigurationService) {
         return ServerBuilder.forPort(loaderConfigurationServicePort)
+                       .addService(loaderConfigurationService)
                        .build();
     }
 

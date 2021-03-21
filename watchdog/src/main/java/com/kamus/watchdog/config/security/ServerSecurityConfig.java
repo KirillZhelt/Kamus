@@ -17,14 +17,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final WatchdogAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final UserDetailsService userDetailsService;
     private final PasswordEncoder passwordEncoder;
 
-    public ServerSecurityConfig(WatchdogAuthenticationEntryPoint customAuthenticationEntryPoint,
-                                UserDetailsService userDetailsService,
+    public ServerSecurityConfig(UserDetailsService userDetailsService,
                                 PasswordEncoder passwordEncoder) {
-        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
         this.userDetailsService = userDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -45,16 +42,7 @@ public class ServerSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeRequests()
-                .antMatchers("/api/sign-in/**").permitAll()
-                .antMatchers("/api/**").authenticated()
-                .anyRequest().authenticated()
-                .and().exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint).accessDeniedHandler(new WatchdogAccessDeniedHandler())
-                .and()
-                .csrf().disable();
+
     }
 
 }

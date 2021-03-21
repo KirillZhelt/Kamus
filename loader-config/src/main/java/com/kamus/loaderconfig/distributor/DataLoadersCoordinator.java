@@ -6,6 +6,8 @@ import com.kamus.loaderconfig.distributor.model.BucketsDistribution;
 import com.kamus.core.model.Loader;
 import com.kamus.core.model.LoaderId;
 import com.kamus.loaderconfig.grpc.DataLoaderStubFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class DataLoadersCoordinator implements LoadersChangeAware {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataLoadersCoordinator.class);
 
     private final DataLoaderStubFactory stubFactory;
     private final BucketsDistributor bucketsDistributor;
@@ -79,6 +83,8 @@ public class DataLoadersCoordinator implements LoadersChangeAware {
 
     private void updateLoaders(Map<LoaderId, BucketsDistribution> distributionMap) {
         distributionMap.forEach((id, distribution) -> {
+            logger.info("Updating loader {} with assigned workload", id.getId());
+
             loaderUpdater.updateLoader(loaderStubs.get(id), distribution);
         });
     }

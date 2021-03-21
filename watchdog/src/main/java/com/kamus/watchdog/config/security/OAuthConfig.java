@@ -28,10 +28,7 @@ public class OAuthConfig extends AuthorizationServerConfigurerAdapter {
     @Value("${jwt.client-secret:secret}")
     private String clientSecret;
 
-    @Value("${jwt.signing-key:123}")
-    private String jwtSigningKey;
-
-    @Value("${jwt.accessTokenValidititySeconds:43200}") // 12 hours
+    @Value("${jwt.accessTokenValiditySeconds:43200}") // 12 hours
     private int accessTokenValiditySeconds;
 
     @Value("${jwt.authorizedGrantTypes:password,authorization_code,refresh_token}")

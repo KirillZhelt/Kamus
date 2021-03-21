@@ -45,6 +45,8 @@ public class ZkAnnouncer {
                 })
                 .toCompletableFuture()
                 .get();
+
+        // TODO: handle reconnect event
     }
 
     public void disconnect() {

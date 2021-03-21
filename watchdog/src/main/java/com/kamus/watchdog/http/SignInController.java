@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/sign-in")
+@RequestMapping("/sign-in")
 public class SignInController {
 
     private final DbUserDetailsService userService;

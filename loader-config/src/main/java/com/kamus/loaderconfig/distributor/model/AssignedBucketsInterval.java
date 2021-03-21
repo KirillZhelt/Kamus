@@ -26,7 +26,7 @@ public class AssignedBucketsInterval implements AssignedBuckets {
     }
 
     private AssignedBucketsInterval(SortedSet<DistributedBucket> buckets) {
-        this(buckets.first().getBucketId(), buckets.last().getBucketId());
+        this(buckets.first().getBucketId(), buckets.last().getBucketId() + 1);
     }
 
     public static AssignedBucketsInterval fromSet(SortedSet<DistributedBucket> buckets) {

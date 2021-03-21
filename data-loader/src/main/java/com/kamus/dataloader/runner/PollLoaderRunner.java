@@ -53,7 +53,10 @@ public class PollLoaderRunner {
 
     private void pollBuckets(Set<LoaderConfiguration> bucketsConfiguration) {
         if (pollInProgress.compareAndSet(false, true)) {
-            List<Single<Object>> pollSingles = bucketsConfiguration.stream().map(this::poll).collect(Collectors.toList());
+            List<Single<Object>> pollSingles = bucketsConfiguration.stream()
+                                                       .filter(bucketConfiguration -> !bucketConfiguration.getRepositoryList().isEmpty())
+                                                       .map(this::poll)
+                                                       .collect(Collectors.toList());
 
             compositeDisposable.add(
                     Single.merge(pollSingles).toList(bucketsConfiguration.size()).subscribe(
