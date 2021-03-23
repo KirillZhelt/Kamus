@@ -5,8 +5,11 @@ import com.kamus.core.db.RepositoryId;
 
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 
 @Entity
+@Table(indexes = @Index(columnList = "bucketId"))
 public class TrackedRepository {
 
     @EmbeddedId
