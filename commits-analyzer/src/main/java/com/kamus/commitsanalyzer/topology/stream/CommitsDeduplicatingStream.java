@@ -22,7 +22,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Configuration
-public class DeduplicatingCommitsStream {
+public class CommitsDeduplicatingStream {
 
     @Value("${kafka.commits.dedup.window.min:60m}")
     @DurationUnit(ChronoUnit.MINUTES)
@@ -32,13 +32,13 @@ public class DeduplicatingCommitsStream {
     @DurationUnit(ChronoUnit.MINUTES)
     private Duration dedupRetention;
 
-    @Value("${kafka.store.commits.dedup:dedupCommits-store")
+    @Value("${kafka.store.commits.dedup:dedupCommits-store}")
     private String dedupCommitsStoreName;
 
     @Bean
-    public KStream<String, RepositoryCommitMessage> kStream(StreamsBuilder streamsBuilder,
-                                                            KafkaProtobufSerde<RepositoryCommitMessage> commitSerde) {
-        streamsBuilder.addStateStore(storeBuilder(commitSerde));
+    public KStream<String, RepositoryCommitMessage> dedupCommitsStream(StreamsBuilder streamsBuilder,
+                                                                       KafkaProtobufSerde<RepositoryCommitMessage> commitSerde) {
+        streamsBuilder.addStateStore(storeBuilder());
 
         KStream<String, RepositoryCommitMessage> deduplicatedCommitsStream =
                 streamsBuilder
@@ -46,7 +46,7 @@ public class DeduplicatingCommitsStream {
                         .transformValues(() -> new DeduplicationTransformer<>(
                                 dedupWindow.toMillis(),
                                 (key, value) -> value.getCommit().getSha(),
-                                dedupCommitsStoreName))
+                                dedupCommitsStoreName), dedupCommitsStoreName)
                         .filter((k, v) -> Objects.nonNull(v));
 
         deduplicatedCommitsStream
@@ -55,13 +55,13 @@ public class DeduplicatingCommitsStream {
         return deduplicatedCommitsStream;
     }
 
-    private StoreBuilder<WindowStore<String, RepositoryCommitMessage>> storeBuilder(KafkaProtobufSerde<RepositoryCommitMessage> commitSerde) {
+    private StoreBuilder<WindowStore<String, Long>> storeBuilder() {
         return Stores.windowStoreBuilder(Stores.persistentWindowStore(
                 dedupCommitsStoreName,
                 dedupWindow,
                 dedupRetention,
                 false
-        ), Serdes.String(), commitSerde);
+        ), Serdes.String(), Serdes.Long());
     }
 
 }

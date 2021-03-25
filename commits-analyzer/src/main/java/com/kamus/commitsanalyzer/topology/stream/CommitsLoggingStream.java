@@ -13,16 +13,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static com.kamus.commitsanalyzer.config.KafkaConfig.COMMITS_SHAS_TOPIC;
 import static com.kamus.commitsanalyzer.config.KafkaConfig.DEDUPLICATED_COMMITS_TOPIC;
 
 @Configuration
-public class LogCommitStream {
+public class CommitsLoggingStream {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(LogCommitStream.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommitsLoggingStream.class);
 
     @Bean
-    public KStream<String, String> kStream(StreamsBuilder kStreamBuilder,
-                                           KafkaProtobufSerde<RepositoryCommitMessage> commitSerde) {
+    public KStream<String, String> logCommitStream(StreamsBuilder kStreamBuilder,
+                                                   KafkaProtobufSerde<RepositoryCommitMessage> commitSerde) {
         KStream<String, RepositoryCommitMessage> stream =
                 kStreamBuilder.stream(DEDUPLICATED_COMMITS_TOPIC, Consumed.with(Serdes.String(), commitSerde));
 
@@ -32,7 +33,7 @@ public class LogCommitStream {
                                                          return commitMessage.getCommit();
                                                      })
                                                      .mapValues(Commit::getSha);
-        shasStream.to("kamus.commits.shas", Produced.with(Serdes.String(), Serdes.String()));
+        shasStream.to(COMMITS_SHAS_TOPIC, Produced.with(Serdes.String(), Serdes.String()));
 
         return shasStream;
     }
