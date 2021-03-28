@@ -13,4 +13,6 @@ findProject(':core:zookeeper')?.name = 'zookeeper'
 include 'core:spring-grpc'
 findProject(':core:spring-grpc')?.name = 'spring-grpc'
 include 'loader-updater'
+include 'core:kafka-grpc'
+findProject(':core:kafka-grpc')?.name = 'kafka-grpc'
 

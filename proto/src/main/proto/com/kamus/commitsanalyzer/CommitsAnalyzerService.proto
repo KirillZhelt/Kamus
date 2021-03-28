@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "com/kamus/common/GitEntities.proto";
+
+package com.kamus.loaderconfig.grpcjava;
+
+option java_multiple_files = true;
+option java_package = "com.kamus.loaderconfig.grpcjava";
+
+message TotalCommitsForResponse {
+  int64 commitsCount = 1;
+}
+
+service CommitsAnalyzerService {
+  rpc totalCommitsFor(com.kamus.common.grpcjava.Repository) returns (TotalCommitsForResponse);
+}

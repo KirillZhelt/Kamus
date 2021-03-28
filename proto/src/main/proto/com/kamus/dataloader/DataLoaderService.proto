@@ -65,7 +65,8 @@ message RemoveRepositoriesResponse {
 }
 
 service DataLoaderService {
-  rpc getCurrentDistributionHash(GetCurrentDistributionHashRequest) returns (GetCurrentDistributionHashResponse);
+  rpc getCurrentDistributionHash(GetCurrentDistributionHashRequest)
+      returns (GetCurrentDistributionHashResponse);
 
   rpc setSources(SetSourcesRequest) returns (SetSourcesResponse);
 
