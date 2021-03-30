@@ -1,4 +1,4 @@
-package com.kamus.watchdog.db.model;
+package com.kamus.core.db;
 
 import com.google.common.base.Preconditions;
 

@@ -1,5 +1,7 @@
 package com.kamus.commitsanalyzer.config;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.protobuf.Message;
 import com.kamus.common.grpcjava.Repository;
 import com.kamus.dataloader.grpcjava.RepositoryCommitMessage;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
@@ -36,6 +38,15 @@ public class KafkaStreamsSerdesConfig {
         serdeConfig.put(KafkaProtobufDeserializerConfig.SPECIFIC_PROTOBUF_VALUE_TYPE, Repository.class.getName());
         serde.configure(serdeConfig, false);
         return serde;
+    }
+
+    @Bean
+    public Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry() {
+        // that is used for gRPC sharding "load" balancer
+
+        return ImmutableMap.of(
+                Repository.class, repositorySerde()
+        );
     }
 
 }

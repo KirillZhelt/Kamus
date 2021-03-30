@@ -26,8 +26,9 @@ public class RepositoriesController {
     }
 
     @PostMapping("/repositories")
-    public ResponseEntity<Boolean> addRepository(@RequestBody RepositoryDto repositoryDto, OAuth2Authentication auth) throws IOException {
-        return new ResponseEntity<>(repositoriesService.addRepository(auth.getName(), repositoryDto), HttpStatus.CREATED);
+    public ResponseEntity<RepositoryDto> addRepository(@RequestBody RepositoryDto repositoryDto, OAuth2Authentication auth) throws IOException {
+        boolean created = repositoriesService.addRepository(auth.getName(), repositoryDto);
+        return new ResponseEntity<>(repositoryDto, created ? HttpStatus.CREATED : HttpStatus.OK);
     }
 
     @DeleteMapping("/repositories/{owner}/{name}")

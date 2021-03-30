@@ -5,15 +5,21 @@ import com.kamus.common.grpcjava.Repository;
 import com.kamus.loaderconfig.grpcjava.CommitsAnalyzerServiceGrpc;
 import com.kamus.loaderconfig.grpcjava.TotalCommitsForResponse;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
+import io.grpc.Metadata;
 import io.grpc.Status;
+import io.grpc.protobuf.ProtoUtils;
+import io.grpc.stub.MetadataUtils;
 import io.grpc.stub.StreamObserver;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
 import org.apache.kafka.streams.StoreQueryParameters;
+import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +30,15 @@ public class CommitsAnalyzerService
         extends CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceImplBase
         implements StreamsBuilderFactoryBean.Listener, KafkaStreams.StateListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommitsAnalyzerService.class);
+
+    private static final Metadata.Key<Repository> SHARDING_KEY =
+            Metadata.Key.of(
+                    "SHARDING_KEY-bin",
+                    ProtoUtils.metadataMarshaller(Repository.getDefaultInstance()));
+
     private final HostInfo host;
+    private final CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceStub commitsAnalyzerStub;
 
     private final KafkaProtobufSerde<Repository> repositorySerde;
 
@@ -34,12 +48,14 @@ public class CommitsAnalyzerService
 
     public CommitsAnalyzerService(StreamsBuilderFactoryBean streamsBuilderFactoryBean,
                                   HostInfo hostInfo,
+                                  CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceStub commitsAnalyzerStub,
                                   KafkaProtobufSerde<Repository> repositorySerde) {
         streamsBuilderFactoryBean.addListener(this);
         streamsBuilderFactoryBean.setStateListener(this);
         this.streams = streamsBuilderFactoryBean.getKafkaStreams();
 
         this.host = hostInfo;
+        this.commitsAnalyzerStub = commitsAnalyzerStub;
 
         this.repositorySerde = repositorySerde;
     }
@@ -47,7 +63,12 @@ public class CommitsAnalyzerService
     @Override
     public void totalCommitsFor(Repository repository, StreamObserver<TotalCommitsForResponse> responseObserver) {
         if (!checkHost(repository, repositorySerde.serializer(), CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE)) {
-            responseObserver.onError(Status.OUT_OF_RANGE.asRuntimeException());
+            Metadata header = new Metadata();
+            header.put(SHARDING_KEY, repository);
+
+            CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceStub stub = MetadataUtils.attachHeaders(commitsAnalyzerStub, header);
+
+            stub.totalCommitsFor(repository, responseObserver);
             return;
         }
 
@@ -77,9 +98,17 @@ public class CommitsAnalyzerService
         }
 
         if (newState.isRunningOrRebalancing()) {
-            this.commitsCountPerRepositoryStore = streams.store(
-                    StoreQueryParameters.fromNameAndType(CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE,
-                            QueryableStoreTypes.keyValueStore()));
+            StoreQueryParameters<ReadOnlyKeyValueStore<Repository, Long>> parameters =
+                    StoreQueryParameters.fromNameAndType(
+                            CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE,
+                            QueryableStoreTypes.<Repository, Long>keyValueStore()).enableStaleStores();
+
+            try {
+                this.commitsCountPerRepositoryStore = streams.store(parameters);
+            } catch (InvalidStateStoreException e) {
+                LOGGER.warn("An exception thrown while trying to obtain a store with parameters {}: {}. Probably store doesn't exists now.",
+                        parameters, e);
+            }
         }
     }
 

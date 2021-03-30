@@ -1,6 +1,6 @@
 package com.kamus.watchdog.http;
 
-import com.kamus.watchdog.db.model.User;
+import com.kamus.core.db.User;
 import com.kamus.watchdog.service.DbUserDetailsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

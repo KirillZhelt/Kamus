@@ -3,6 +3,7 @@ package com.kamus.watchdog.config;
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.GitHubBuilder;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -14,6 +15,7 @@ import java.util.Properties;
 
 @Configuration
 @PropertySource("classpath:secrets.properties")
+@EntityScan(basePackages = { "com.kamus.core.db", "com.kamus.watchdog.db"})
 public class WatchdogConfig {
 
     private static final String GITHUB_OAUTH_PROPERTY = "oauth";

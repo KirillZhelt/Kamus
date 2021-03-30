@@ -1,9 +1,10 @@
 package com.kamus.watchdog.service;
 
+import com.kamus.core.db.UserRepositoryId;
 import com.kamus.loaderconfig.grpcjava.TrackRepositoryRequest;
-import com.kamus.watchdog.db.model.Repository;
-import com.kamus.watchdog.db.model.User;
-import com.kamus.watchdog.db.repository.RepositoriesRepository;
+import com.kamus.core.db.User;
+import com.kamus.watchdog.db.model.UserRepository;
+import com.kamus.watchdog.db.repository.UserRepositoriesRepository;
 import com.kamus.watchdog.http.model.RepositoryDto;
 import com.kamus.watchdog.service.exception.CannotTrackRepositoryException;
 import com.kamus.watchdog.service.exception.RepositoryDoesNotExistsException;
@@ -28,16 +29,16 @@ public class RepositoriesService {
     private static final Logger logger = LoggerFactory.getLogger(RepositoriesService.class);
 
     private final DbUserDetailsService userService;
-    private final RepositoriesRepository repositoriesRepository;
+    private final UserRepositoriesRepository userRepositoriesRepository;
     private final KafkaTemplate<String, TrackRepositoryRequest> trackRepositoryProducer;
     private final GitHub github;
 
     public RepositoriesService(DbUserDetailsService userService,
-                               RepositoriesRepository repositoriesRepository,
+                               UserRepositoriesRepository userRepositoriesRepository,
                                KafkaTemplate<String, TrackRepositoryRequest> trackRepositoryProducer,
                                GitHub github) {
         this.userService = userService;
-        this.repositoriesRepository = repositoriesRepository;
+        this.userRepositoriesRepository = userRepositoriesRepository;
         this.trackRepositoryProducer = trackRepositoryProducer;
         this.github = github;
     }
@@ -45,22 +46,27 @@ public class RepositoriesService {
     public List<RepositoryDto> findUserRepositories(String username) {
         User user = userService.findUser(username).orElseThrow(() -> new UserDoesNotExistException(username));
 
-        return repositoriesRepository.findAllByUser(user)
+        return userRepositoriesRepository.findAllByUser(user)
                        .stream()
                        .map(r -> new RepositoryDto(r.getId().getName(), r.getId().getOwner()))
                        .collect(Collectors.toList());
     }
 
+    public boolean repositoryExistsForUser(String username, String owner, String name) {
+        User user = userService.findUser(username).orElseThrow(() -> new UserDoesNotExistException(username));
+        return userRepositoriesRepository.existsById(new UserRepositoryId(owner, name, user.getId()));
+    }
+
     public boolean addRepository(String username, RepositoryDto repositoryDto) throws IOException {
         User user = userService.findUser(username).orElseThrow(() -> new UserDoesNotExistException(username));
 
-        if (!repositoryExists(repositoryDto)) {
+        if (!repositoryExistsOnGithub(repositoryDto)) {
             throw new RepositoryDoesNotExistsException(repositoryDto);
         }
 
-        Repository repository = new Repository(repositoryDto.getOwner(), repositoryDto.getName(), user);
+        UserRepository repository = new UserRepository(repositoryDto.getOwner(), repositoryDto.getName(), user);
 
-        if (repositoriesRepository.existsById(repository.getId())) {
+        if (userRepositoriesRepository.existsById(repository.getId())) {
             return false;
         }
 
@@ -78,23 +84,23 @@ public class RepositoriesService {
             throw new CannotTrackRepositoryException("Wasn't able to send a message to track.repository topic", e);
         }
 
-        repositoriesRepository.save(repository);
+        userRepositoriesRepository.save(repository);
         return true;
     }
 
     public boolean removeRepository(String username, String owner, String name) {
         User user = userService.findUser(username).orElseThrow(() -> new UserDoesNotExistException(username));
-        Repository repository = new Repository(owner, name, user);
+        UserRepository repository = new UserRepository(owner, name, user);
 
-        if (repositoriesRepository.existsById(repository.getId())) {
+        if (userRepositoriesRepository.existsById(repository.getId())) {
             return false;
         }
 
-        repositoriesRepository.delete(repository);
+        userRepositoriesRepository.delete(repository);
         return true;
     }
 
-    private boolean repositoryExists(RepositoryDto repositoryDto) throws IOException {
+    private boolean repositoryExistsOnGithub(RepositoryDto repositoryDto) throws IOException {
         try {
             github.getRepository(repositoryDto.getOwner() + "/" + repositoryDto.getName());
             return true;

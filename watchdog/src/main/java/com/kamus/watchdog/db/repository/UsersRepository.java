@@ -1,6 +1,6 @@
 package com.kamus.watchdog.db.repository;
 
-import com.kamus.watchdog.db.model.User;
+import com.kamus.core.db.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

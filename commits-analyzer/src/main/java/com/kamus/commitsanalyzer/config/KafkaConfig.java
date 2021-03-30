@@ -44,10 +44,15 @@ public class KafkaConfig {
         return new HostInfo(InetAddress.getLocalHost().getHostAddress(), grpcServerPort);
     }
 
+    @Bean
+    public String applicationId() {
+        return "kamus.commits.commits.analyzer";
+    }
+
     @Bean(name = KafkaStreamsDefaultConfiguration.DEFAULT_STREAMS_CONFIG_BEAN_NAME)
     public KafkaStreamsConfiguration kStreamsConfig(ApplicationContext context) {
         Map<String, Object> props = new HashMap<>();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "kamus.commits.commits.analyzer");
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId());
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class);
 

@@ -1,7 +1,7 @@
 package com.kamus.watchdog.service;
 
 import com.google.common.base.Preconditions;
-import com.kamus.watchdog.db.model.User;
+import com.kamus.core.db.User;
 import com.kamus.watchdog.db.repository.UsersRepository;
 import com.kamus.watchdog.service.exception.UserAlreadyExistsException;
 import org.springframework.security.core.GrantedAuthority;
