@@ -1,16 +1,22 @@
 syntax = "proto3";
 
 import "com/kamus/common/GitEntities.proto";
+import "google/protobuf/any.proto";
 
 package com.kamus.loaderconfig.grpcjava;
 
 option java_multiple_files = true;
 option java_package = "com.kamus.loaderconfig.grpcjava";
 
+message ShardingKey {
+  google.protobuf.Any key = 1;
+}
+
 message TotalCommitsForResponse {
   int64 commitsCount = 1;
+  string instance = 2;
 }
 
 service CommitsAnalyzerService {
-  rpc totalCommitsFor(com.kamus.common.grpcjava.Repository) returns (TotalCommitsForResponse);
+  rpc commitsCountPerRepositoryStore(com.kamus.common.grpcjava.Repository) returns (TotalCommitsForResponse);
 }

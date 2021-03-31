@@ -1,8 +1,7 @@
 package com.kamus.commitsanalyzer.config;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.protobuf.Message;
 import com.kamus.common.grpcjava.Repository;
+import com.kamus.core.kafka.grpc.streams.sharding.internal.ShardingKeysRegistry;
 import com.kamus.dataloader.grpcjava.RepositoryCommitMessage;
 import io.confluent.kafka.serializers.AbstractKafkaSchemaSerDeConfig;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufDeserializerConfig;
@@ -41,12 +40,17 @@ public class KafkaStreamsSerdesConfig {
     }
 
     @Bean
-    public Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry() {
+    public ShardingKeysRegistry shardingKeysRegistry() {
         // that is used for gRPC sharding "load" balancer
+        ShardingKeysRegistry shardingKeysRegistry = new ShardingKeysRegistry();
 
-        return ImmutableMap.of(
-                Repository.class, repositorySerde()
-        );
+        registerShardingKeys(shardingKeysRegistry);
+
+        return shardingKeysRegistry;
+    }
+
+    private void registerShardingKeys(ShardingKeysRegistry shardingKeysRegistry) {
+        shardingKeysRegistry.registerShardingKey(new ShardingKeysRegistry.Entry<>(Repository.class, repositorySerde().serializer()));
     }
 
 }

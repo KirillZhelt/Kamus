@@ -1,8 +1,11 @@
 package com.kamus.commitsanalyzer.grpc;
 
+import com.google.protobuf.Any;
 import com.kamus.commitsanalyzer.topology.stream.CommitsCounterStreams;
 import com.kamus.common.grpcjava.Repository;
+import com.kamus.core.kafka.grpc.streams.sharding.internal.ShardingKeysRegistry;
 import com.kamus.loaderconfig.grpcjava.CommitsAnalyzerServiceGrpc;
+import com.kamus.loaderconfig.grpcjava.ShardingKey;
 import com.kamus.loaderconfig.grpcjava.TotalCommitsForResponse;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import io.grpc.Metadata;
@@ -32,10 +35,10 @@ public class CommitsAnalyzerService
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommitsAnalyzerService.class);
 
-    private static final Metadata.Key<Repository> SHARDING_KEY =
+    private static final Metadata.Key<ShardingKey> SHARDING_KEY =
             Metadata.Key.of(
                     "SHARDING_KEY-bin",
-                    ProtoUtils.metadataMarshaller(Repository.getDefaultInstance()));
+                    ProtoUtils.metadataMarshaller(ShardingKey.getDefaultInstance()));
 
     private final HostInfo host;
     private final CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceStub commitsAnalyzerStub;
@@ -61,14 +64,16 @@ public class CommitsAnalyzerService
     }
 
     @Override
-    public void totalCommitsFor(Repository repository, StreamObserver<TotalCommitsForResponse> responseObserver) {
+    public void commitsCountPerRepositoryStore(Repository repository, StreamObserver<TotalCommitsForResponse> responseObserver) {
         if (!checkHost(repository, repositorySerde.serializer(), CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE)) {
             Metadata header = new Metadata();
-            header.put(SHARDING_KEY, repository);
+
+            ShardingKey key = ShardingKey.newBuilder().setKey(Any.pack(repository, "")).build();
+            header.put(SHARDING_KEY, key);
 
             CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceStub stub = MetadataUtils.attachHeaders(commitsAnalyzerStub, header);
 
-            stub.totalCommitsFor(repository, responseObserver);
+            stub.commitsCountPerRepositoryStore(repository, responseObserver);
             return;
         }
 
@@ -78,7 +83,7 @@ public class CommitsAnalyzerService
             return;
         }
 
-        responseObserver.onNext(TotalCommitsForResponse.newBuilder().setCommitsCount(commitsCount).build());
+        responseObserver.onNext(TotalCommitsForResponse.newBuilder().setCommitsCount(commitsCount).setInstance(host.toString()).build());
         responseObserver.onCompleted();
     }
 

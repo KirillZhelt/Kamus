@@ -1,25 +1,21 @@
 package com.kamus.core.kafka.grpc.streams.sharding.internal;
 
 import com.google.common.base.Preconditions;
-import com.google.protobuf.Message;
-import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import io.grpc.LoadBalancer;
 import io.grpc.LoadBalancerProvider;
-
-import java.util.Map;
 
 public class KafkaStreamsInternalLoadBalancerProvider extends LoadBalancerProvider {
 
     private final KafkaStreamsSingletonRegistry kafkaStreamsRegistry;
-    private final Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry;
+    private final ShardingKeysRegistry shardingKeysRegistry;
 
     public KafkaStreamsInternalLoadBalancerProvider(KafkaStreamsSingletonRegistry kafkaStreamsRegistry,
-                                                    Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry) {
+                                                    ShardingKeysRegistry shardingKeysRegistry) {
         Preconditions.checkNotNull(kafkaStreamsRegistry);
-        Preconditions.checkNotNull(serdesRegistry);
+        Preconditions.checkNotNull(shardingKeysRegistry);
 
         this.kafkaStreamsRegistry = kafkaStreamsRegistry;
-        this.serdesRegistry = serdesRegistry;
+        this.shardingKeysRegistry = shardingKeysRegistry;
     }
 
     @Override
@@ -39,7 +35,7 @@ public class KafkaStreamsInternalLoadBalancerProvider extends LoadBalancerProvid
 
     @Override
     public LoadBalancer newLoadBalancer(LoadBalancer.Helper helper) {
-        return new KafkaStreamsInternalLoadBalancer(helper, kafkaStreamsRegistry, serdesRegistry);
+        return new KafkaStreamsInternalLoadBalancer(helper, kafkaStreamsRegistry, shardingKeysRegistry);
     }
 
 }

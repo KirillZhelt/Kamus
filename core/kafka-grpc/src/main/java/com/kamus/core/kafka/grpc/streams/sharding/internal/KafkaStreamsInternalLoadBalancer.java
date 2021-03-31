@@ -4,8 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.protobuf.Message;
-import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import io.grpc.*;
 
 import javax.annotation.Nonnull;
@@ -22,7 +20,7 @@ public class KafkaStreamsInternalLoadBalancer extends LoadBalancer {
             Attributes.Key.create("state-info");
 
     private final KafkaStreamsSingletonRegistry kafkaStreamsRegistry;
-    private final Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry;
+    private final ShardingKeysRegistry shardingKeysRegistry;
     private final Helper helper;
     private final Map<EquivalentAddressGroup, Subchannel> subchannels =
             new HashMap<>();
@@ -31,11 +29,11 @@ public class KafkaStreamsInternalLoadBalancer extends LoadBalancer {
     private Picker currentPicker = new EmptyPicker(EMPTY_OK);
 
     KafkaStreamsInternalLoadBalancer(Helper helper, KafkaStreamsSingletonRegistry kafkaStreamsRegistry,
-                                     Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry) {
+                                     ShardingKeysRegistry shardingKeysRegistry) {
         this.helper = checkNotNull(helper, "helper");
 
         this.kafkaStreamsRegistry = kafkaStreamsRegistry;
-        this.serdesRegistry = serdesRegistry;
+        this.shardingKeysRegistry = shardingKeysRegistry;
     }
 
     @Override
@@ -166,7 +164,7 @@ public class KafkaStreamsInternalLoadBalancer extends LoadBalancer {
         } else {
             // initialize the Picker to a random start index to ensure that a high frequency of Picker
             // churn does not skew subchannel selection.
-            updateBalancingState(READY, new KafkaStreamsInternalPicker(activeList, kafkaStreamsRegistry, serdesRegistry));
+            updateBalancingState(READY, new KafkaStreamsInternalPicker(activeList, kafkaStreamsRegistry, shardingKeysRegistry));
         }
     }
 

@@ -1,11 +1,10 @@
 package com.kamus.commitsanalyzer.config;
 
-import com.google.protobuf.Message;
 import com.kamus.core.kafka.grpc.streams.sharding.internal.KafkaStreamsInternalLoadBalancerProvider;
 import com.kamus.core.kafka.grpc.streams.sharding.internal.KafkaStreamsInternalNameResolverProvider;
 import com.kamus.core.kafka.grpc.streams.sharding.internal.KafkaStreamsSingletonRegistry;
+import com.kamus.core.kafka.grpc.streams.sharding.internal.ShardingKeysRegistry;
 import com.kamus.loaderconfig.grpcjava.CommitsAnalyzerServiceGrpc;
-import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
 import io.grpc.Channel;
 import io.grpc.LoadBalancerRegistry;
 import io.grpc.ManagedChannelBuilder;
@@ -14,8 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
-
-import java.util.Map;
 
 @Configuration
 public class GrpcClientConfig {
@@ -43,8 +40,8 @@ public class GrpcClientConfig {
     @Bean
     public KafkaStreamsInternalLoadBalancerProvider kafkaStreamsInternalLoadBalancerProvider(
             KafkaStreamsSingletonRegistry kafkaStreamsRegistry,
-            Map<Class<? extends Message>, KafkaProtobufSerde<? extends Message>> serdesRegistry) {
-        return new KafkaStreamsInternalLoadBalancerProvider(kafkaStreamsRegistry, serdesRegistry);
+            ShardingKeysRegistry shardingKeysRegistry) {
+        return new KafkaStreamsInternalLoadBalancerProvider(kafkaStreamsRegistry, shardingKeysRegistry);
     }
 
     @Bean
