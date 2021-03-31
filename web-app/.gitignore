@@ -1,25 +1,4 @@
-# Gradle
-**/.gradle/
-**/gradle/
-
-# IntelliJ IDEA
-**/.idea
-
-# Java
-*.class
-*.jar
-**/build/
-
-# Secrets
-**/secrets.properties
-
-# MacOS
-.DS_Store
-
-# Protobuf
-/proto/build
-
-# React web-app
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
 /node_modules

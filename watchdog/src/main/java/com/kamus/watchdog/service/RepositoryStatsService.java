@@ -17,7 +17,7 @@ public class RepositoryStatsService {
     }
 
     public RepositoryStatsDto getStats(RepositoryDto repository) {
-        long totalCommits = commitsAnalyzerStub.totalCommitsFor(toProtoRepository(repository)).getCommitsCount();
+        long totalCommits = commitsAnalyzerStub.commitsCountPerRepositoryStore(toProtoRepository(repository)).getCommitsCount();
         StatsDto stats = new StatsDto(totalCommits);
 
         return new RepositoryStatsDto(repository, stats);
