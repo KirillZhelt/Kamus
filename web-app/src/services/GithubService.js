@@ -22,6 +22,10 @@ class GithubService {
         return this._api(`/repos/${owner}/${name}`).then(resp => resp.json());
     }
 
+    async searchRepository(searchQuery, maxResultCount) {
+        return this._api(`/search/repositories?q=${searchQuery}&per_page=${maxResultCount}`).then(resp => resp.json()).then(result => result.items);
+    }
+
 }
 
 const githubService = new GithubService();

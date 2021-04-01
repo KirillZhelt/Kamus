@@ -1,0 +1,21 @@
+.searchResults {
+    position: absolute;
+    background-color: #ececec;
+    width: 300px;
+    border-radius: 2px;
+    box-shadow: 2px 13px 18px 0px rgba(191,191,191,1);
+}
+
+.searchResultItem {
+    cursor: pointer;
+}
+
+.searchResults .searchResultItem:last-child {
+    border-bottom: none !important;
+}
+
+.repository-name {
+    color: #007bff;
+    font-weight: 700;
+    font-size: 24px;
+}
