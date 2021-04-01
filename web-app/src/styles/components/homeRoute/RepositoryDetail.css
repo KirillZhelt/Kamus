@@ -1,0 +1,49 @@
+.repository-detail {
+    display: inline-block;
+    margin-top: 12px;
+    width: 400px;
+    padding-left: 7px;
+    padding-top: 7px;
+}
+
+.repository-detail-name {
+    color: #007bff;
+    font-weight: 700;
+    font-size: 24px;
+    display: inline;
+}
+
+.language-circle {
+    background: lightblue;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+}
+
+.language-name {
+    font-size: 13px;
+    font-weight: 400;
+    color: #3a3c3d;
+}
+
+.updated-at {
+    margin-left: 19px;
+    font-size: 13px;
+    color: #3a3c3d;
+    font-weight: 400;
+}
+
+.stargazers-count {
+    font-size: 13px;
+    margin-left: 4px;
+}
+
+.stargazers {
+    display: inline;
+    margin-left: 20px;
+}
+
+.description {
+    margin-top: 10px;
+}

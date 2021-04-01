@@ -34,6 +34,8 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
                 .anyRequest().authenticated()
                 .and().exceptionHandling().authenticationEntryPoint(customAuthenticationEntryPoint).accessDeniedHandler(new WatchdogAccessDeniedHandler())
                 .and()
+                .cors()
+                .and()
                 .csrf().disable();
     }
 }
