@@ -2,7 +2,7 @@
 class WatchdogApiService {
 
     HOST = 'http://localhost:8080/api';
-    TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYXBpIl0sImV4cCI6MTYxNzM0NTIzMCwidXNlcl9uYW1lIjoidGVzdDEiLCJqdGkiOiJjY2M1MTgzZi1jMTc2LTQ0ZTYtODFkYy0xMThmZGRhNmMwOWQiLCJjbGllbnRfaWQiOiJ3YXRjaGRvZyIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdfQ.jZsyBzy_5qVTRKQkiBIs3qMz6o9JbFQXhHkwsx0ydrk';
+    TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYXBpIl0sImV4cCI6MTYxNzM5MjY3MiwidXNlcl9uYW1lIjoidGVzdDEiLCJqdGkiOiIwM2FlOWE5ZC0yZDYxLTQyNTQtOGNlZi1jMjZkZWU0MGFjNGYiLCJjbGllbnRfaWQiOiJ3YXRjaGRvZyIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdfQ.iogYA2E5ktA5NL34TMnURV5hno9TQxHCv-W_FyXZ1js';
 
     async _api(endpoint, request) {
         if (request === undefined) {

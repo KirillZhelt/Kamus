@@ -1,0 +1,10 @@
+ .repository {
+    margin-left: 24px;
+    margin-top: 14px;
+ }
+
+.repository .repository-name {
+    color: #2d2e2e;
+    font-weight: 700;
+    font-size: 24px;
+}
