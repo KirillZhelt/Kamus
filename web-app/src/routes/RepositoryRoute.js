@@ -2,6 +2,10 @@ import { React, Component } from 'react';
 import GithubButton from 'react-github-btn';
 import { AiOutlineStar } from 'react-icons/ai';
 
+import CommitStats from '../components/repositoryRoute/CommitStats';
+
+import RepositoryId from '../model/RepositoryId';
+
 import githubService from '../services/GithubService';
 
 import '../styles/components/repositoryRoute/RepositoryRoute.css';
@@ -59,6 +63,8 @@ export default class RepositoryRoute extends Component {
                             </div>
 
                             <hr style={{width: '600px', display: 'inline-block'}} />
+
+                            <CommitStats repositoryId={new RepositoryId(repositoryDetail.owner.login, repositoryDetail.name)} />
                         </>
                     }
                 </div>

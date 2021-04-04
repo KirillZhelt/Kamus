@@ -1,5 +1,6 @@
 package com.kamus.commitsanalyzer.config;
 
+import com.kamus.commitsanalyzer.kafka.CommitsAnalyzerTimeExtractor;
 import io.confluent.kafka.serializers.protobuf.KafkaProtobufSerializerConfig;
 import io.grpc.Server;
 import org.apache.kafka.streams.KafkaStreams;
@@ -55,6 +56,7 @@ public class KafkaConfig {
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId());
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(StreamsConfig.DEFAULT_DESERIALIZATION_EXCEPTION_HANDLER_CLASS_CONFIG, LogAndContinueExceptionHandler.class);
+        props.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG, CommitsAnalyzerTimeExtractor.class.getName());
 
         HostInfo hostInfo = context.getBean(HostInfo.class);
         props.put(StreamsConfig.APPLICATION_SERVER_CONFIG, hostInfo.host() + ":" + hostInfo.port());

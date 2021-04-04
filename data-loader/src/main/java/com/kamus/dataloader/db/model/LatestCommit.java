@@ -20,11 +20,13 @@ public class LatestCommit {
 
     private LocalDateTime commitDate;
 
+    private String nextCursor;
+
     protected LatestCommit() {
 
     }
 
-    public LatestCommit(RepositoryId id, String sha, LocalDateTime commitDate) {
+    public LatestCommit(RepositoryId id, String sha, LocalDateTime commitDate, String nextCursor) {
         Preconditions.checkNotNull(id);
         Preconditions.checkNotNull(sha);
         Preconditions.checkNotNull(commitDate);
@@ -32,6 +34,7 @@ public class LatestCommit {
         this.id = id;
         this.sha = sha;
         this.commitDate = commitDate;
+        this.nextCursor = nextCursor;
     }
 
     public RepositoryId getId() {
@@ -56,6 +59,14 @@ public class LatestCommit {
 
     public void setCommitDate(LocalDateTime commitDate) {
         this.commitDate = commitDate;
+    }
+
+    public String getNextCursor() {
+        return nextCursor;
+    }
+
+    public void setNextCursor(String nextCursor) {
+        this.nextCursor = nextCursor;
     }
 
 }

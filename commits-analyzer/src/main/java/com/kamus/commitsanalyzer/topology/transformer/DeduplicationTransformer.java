@@ -9,6 +9,7 @@ import org.apache.kafka.streams.state.WindowStoreIterator;
 
 import java.util.Objects;
 
+// deduplicates records by id in the given window interval (time is processing time not record time)
 public class DeduplicationTransformer<K, V, E> implements ValueTransformerWithKey<K, V, V> {
 
     private final long leftDurationMs;
@@ -17,7 +18,6 @@ public class DeduplicationTransformer<K, V, E> implements ValueTransformerWithKe
 
     private final KeyValueMapper<K, V, E> idExtractor;
 
-    private ProcessorContext processorContext;
     private WindowStore<E, Long> eventIdStore;
 
     public DeduplicationTransformer(long maintainDurationPerEventInMs, KeyValueMapper<K, V, E> idExtractor,
@@ -34,7 +34,6 @@ public class DeduplicationTransformer<K, V, E> implements ValueTransformerWithKe
     @Override
     @SuppressWarnings("unchecked")
     public void init(ProcessorContext context) {
-        this.processorContext = context;
         eventIdStore = (WindowStore<E, Long>) context.getStateStore(storeName);
     }
 
@@ -47,10 +46,10 @@ public class DeduplicationTransformer<K, V, E> implements ValueTransformerWithKe
             V output;
             if (isDuplicate(eventId)) {
                 output = null;
-                updateTimestampOfExistingEventToPreventExpiry(eventId, processorContext.timestamp());
+                updateTimestampOfExistingEventToPreventExpiry(eventId, System.currentTimeMillis());
             } else {
                 output = value;
-                rememberNewEvent(eventId, processorContext.timestamp());
+                rememberNewEvent(eventId, System.currentTimeMillis());
             }
 
             return output;
@@ -66,7 +65,7 @@ public class DeduplicationTransformer<K, V, E> implements ValueTransformerWithKe
     }
 
     private boolean isDuplicate(E eventId) {
-        long eventTime = processorContext.timestamp();
+        long eventTime = System.currentTimeMillis();
         WindowStoreIterator<Long> timeIterator = eventIdStore.fetch(
                 eventId,
                 eventTime - leftDurationMs,

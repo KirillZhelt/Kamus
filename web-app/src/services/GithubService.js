@@ -2,7 +2,7 @@
 class GithubService {
 
     HOST = 'https://api.github.com'
-    TOKEN = '861717ad52a6226e1294ff8eb4eff1a1c2abc957'
+    TOKEN = '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'
 
     cache = {}
 

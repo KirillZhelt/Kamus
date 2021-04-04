@@ -9,6 +9,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.kstream.Windowed;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
 import org.apache.kafka.streams.state.WindowStore;
@@ -58,8 +59,8 @@ public class CommitsDeduplicatingStream {
     private StoreBuilder<WindowStore<String, Long>> storeBuilder() {
         return Stores.windowStoreBuilder(Stores.persistentWindowStore(
                 dedupCommitsStoreName,
-                dedupWindow,
                 dedupRetention,
+                dedupWindow,
                 false
         ), Serdes.String(), Serdes.Long());
     }

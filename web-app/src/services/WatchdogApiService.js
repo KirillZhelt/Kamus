@@ -2,7 +2,7 @@
 class WatchdogApiService {
 
     HOST = 'http://localhost:8080/api';
-    TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYXBpIl0sImV4cCI6MTYxNzM5MjY3MiwidXNlcl9uYW1lIjoidGVzdDEiLCJqdGkiOiIwM2FlOWE5ZC0yZDYxLTQyNTQtOGNlZi1jMjZkZWU0MGFjNGYiLCJjbGllbnRfaWQiOiJ3YXRjaGRvZyIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdfQ.iogYA2E5ktA5NL34TMnURV5hno9TQxHCv-W_FyXZ1js';
+    TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOlsiYXBpIl0sImV4cCI6MTYxNzQwNDc1MywidXNlcl9uYW1lIjoidGVzdDEiLCJqdGkiOiI1NzAwMDM5Zi1hNzZkLTRmY2EtYmYzMS0yODNmNjBlZWM2MzQiLCJjbGllbnRfaWQiOiJ3YXRjaGRvZyIsInNjb3BlIjpbInJlYWQiLCJ3cml0ZSJdfQ.G-mDeeOG9EH5iuy8XxVd9pDYgK_X78jAZqiLdHZUEoc';
 
     async _api(endpoint, request) {
         if (request === undefined) {
@@ -30,6 +30,19 @@ class WatchdogApiService {
               },
         }).then(result => result.json());
     } 
+
+    async getCommitStats(repositoryId) {
+        return this._api(`/repositories/${repositoryId.owner}/${repositoryId.name}/stats`)
+                    .then(response => {
+                        if (response.status === 204) {
+                            return {
+                                message: 'No data is available yet. It will appear soon, please wait.',
+                            };
+                        }
+
+                        return response.json();
+                    });
+    }
 
 }
 

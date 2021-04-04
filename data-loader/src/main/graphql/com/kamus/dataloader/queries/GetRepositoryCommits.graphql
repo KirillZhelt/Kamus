@@ -76,6 +76,41 @@ query GetLatestCommit($owner: String!, $name: String!) {
                     changedFiles
                     committedDate
                     oid
+
+                    history {
+                        totalCount
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Used for fetching al commits from the repo
+query GetCommitsPaginatedBefore($owner: String!, $name: String!, $rootCommit: GitObjectID!, $beforeCursor: String!, $commitsPerPage: Int!) {
+    repository(owner: $owner, name: $name) {
+        object(oid: $rootCommit) {
+            ... on Commit {
+                history(last: $commitsPerPage, before: $beforeCursor) {
+                    edges {
+                        node {
+                            ... on Commit {
+                                author {
+                                    email
+                                    name
+                                }
+                                additions
+                                deletions
+                                changedFiles
+                                committedDate
+                                oid
+                            }
+                        }
+                    }
+                    pageInfo {
+                        startCursor
+                        hasPreviousPage
+                    }
                 }
             }
         }

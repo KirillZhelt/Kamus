@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "com/kamus/common/GitEntities.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 
 package com.kamus.loaderconfig.grpcjava;
 
@@ -17,6 +18,15 @@ message TotalCommitsForResponse {
   string instance = 2;
 }
 
+message CommitsCountFor31DaysResponse {
+  map<string, int64> commitsCountForDay = 1;
+  string instance = 2;
+}
+
 service CommitsAnalyzerService {
-  rpc commitsCountPerRepositoryStore(com.kamus.common.grpcjava.Repository) returns (TotalCommitsForResponse);
+  rpc commitsCountPerRepositoryStore(com.kamus.common.grpcjava.Repository)
+      returns (TotalCommitsForResponse);
+
+  rpc commitsCountPerRepositoryFor31DaysAggregatedByDay(com.kamus.common.grpcjava.Repository)
+      returns (CommitsCountFor31DaysResponse);
 }

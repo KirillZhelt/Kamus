@@ -6,6 +6,7 @@ import com.kamus.dataloader.config.KafkaConfig;
 import com.kamus.dataloader.db.model.LatestCommit;
 import com.kamus.dataloader.db.repostitory.LatestCommitRepository;
 import com.kamus.dataloader.grpcjava.RepositoryCommitMessage;
+import com.kamus.dataloader.model.FetchResult;
 import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,22 +34,31 @@ public class CommitsPusherService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public Single<Object> pushCommits(List<Commit> commits) {
-        return sendCommitsToKafka(commits)
-                .flatMap(it -> writeCommitsToDb(commits));
+    public Single<Object> pushCommits(List<FetchResult> fetchResults) {
+        return Single.merge(
+                fetchResults.stream()
+                        .filter(fr -> !fr.getCommits().isEmpty())
+                        .map(this::pushCommits)
+                        .collect(Collectors.toList()))
+                       .toList()
+                       .map(it -> SUCCESS);
     }
 
-    private Single<Object> writeCommitsToDb(List<Commit> commits) {
+    public Single<Object> pushCommits(FetchResult fetchResult) {
+        return sendCommitsToKafka(fetchResult.getCommits())
+                .flatMap(it -> writeCommitsToDb(fetchResult.getCommits(), fetchResult));
+    }
+
+    private Single<Object> writeCommitsToDb(List<Commit> commits, FetchResult fetchResult) {
         if (commits.isEmpty()) {
             logger.info("No new commits!");
         } else {
-            logger.error("И пускай капает капает с неба");
-
             Commit latestCommit = commits.get(0);
             LatestCommit commit = new LatestCommit(
                     new RepositoryId(latestCommit.getRepository().getOwner(), latestCommit.getRepository().getName()),
                     latestCommit.getSha(),
-                    toLocalDateTime(latestCommit.getCommitDate())
+                    toLocalDateTime(latestCommit.getCommitDate()),
+                    fetchResult.getNextCursor().orElse(null)
             );
 
             latestCommitRepository.save(commit);
@@ -66,7 +76,7 @@ public class CommitsPusherService {
         List<Single<SendResult<String, RepositoryCommitMessage>>> sendSingles =
                 commits.stream()
                         .map(commit ->
-                                     Single.fromFuture(kafkaTemplate.send(KafkaConfig.COMMITS_TOPIC_NAME, RepositoryCommitMessage.newBuilder().setCommit(commit).build()))
+                                     Single.fromFuture(kafkaTemplate.send(KafkaConfig.COMMITS_TOPIC_NAME, commit.getSha(), RepositoryCommitMessage.newBuilder().setCommit(commit).build()))
                                              .doOnError(e -> logger.error("Wasn't able to send a commit: " + e.toString()))
                        )
                         .collect(Collectors.toList());

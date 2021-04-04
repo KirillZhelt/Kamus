@@ -5,9 +5,9 @@ import com.google.common.base.Preconditions;
 public class RepositoryStatsDto {
 
     private final RepositoryDto repository;
-    private final StatsDto stats;
+    private final CommitStatsDto stats;
 
-    public RepositoryStatsDto(RepositoryDto repository, StatsDto stats) {
+    public RepositoryStatsDto(RepositoryDto repository, CommitStatsDto stats) {
         Preconditions.checkNotNull(repository);
 
         this.repository = repository;
@@ -18,7 +18,7 @@ public class RepositoryStatsDto {
         return repository;
     }
 
-    public StatsDto getStats() {
+    public CommitStatsDto getStats() {
         return stats;
     }
 

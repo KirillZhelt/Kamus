@@ -3,8 +3,8 @@ package com.kamus.commitsanalyzer.grpc;
 import com.google.protobuf.Any;
 import com.kamus.commitsanalyzer.topology.stream.CommitsCounterStreams;
 import com.kamus.common.grpcjava.Repository;
-import com.kamus.core.kafka.grpc.streams.sharding.internal.ShardingKeysRegistry;
 import com.kamus.loaderconfig.grpcjava.CommitsAnalyzerServiceGrpc;
+import com.kamus.loaderconfig.grpcjava.CommitsCountFor31DaysResponse;
 import com.kamus.loaderconfig.grpcjava.ShardingKey;
 import com.kamus.loaderconfig.grpcjava.TotalCommitsForResponse;
 import io.confluent.kafka.streams.serdes.protobuf.KafkaProtobufSerde;
@@ -16,16 +16,18 @@ import io.grpc.stub.StreamObserver;
 import org.apache.kafka.common.serialization.Serializer;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyQueryMetadata;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StoreQueryParameters;
 import org.apache.kafka.streams.errors.InvalidStateStoreException;
-import org.apache.kafka.streams.state.HostInfo;
-import org.apache.kafka.streams.state.QueryableStoreTypes;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
+import org.apache.kafka.streams.kstream.Windowed;
+import org.apache.kafka.streams.state.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Service
@@ -48,6 +50,7 @@ public class CommitsAnalyzerService
     private KafkaStreams streams;
 
     private ReadOnlyKeyValueStore<Repository, Long> commitsCountPerRepositoryStore;
+    private ReadOnlyWindowStore<Repository, Long> commitsCountPerRepositoryFor31DaysStore;
 
     public CommitsAnalyzerService(StreamsBuilderFactoryBean streamsBuilderFactoryBean,
                                   HostInfo hostInfo,
@@ -88,6 +91,40 @@ public class CommitsAnalyzerService
     }
 
     @Override
+    public void commitsCountPerRepositoryFor31DaysAggregatedByDay(Repository repository, StreamObserver<CommitsCountFor31DaysResponse> responseObserver) {
+        if (!checkHost(repository, repositorySerde.serializer(), CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE_31_DAYS)) {
+            Metadata header = new Metadata();
+
+            ShardingKey key = ShardingKey.newBuilder().setKey(Any.pack(repository, "")).build();
+            header.put(SHARDING_KEY, key);
+
+            CommitsAnalyzerServiceGrpc.CommitsAnalyzerServiceStub stub = MetadataUtils.attachHeaders(commitsAnalyzerStub, header);
+
+            stub.commitsCountPerRepositoryFor31DaysAggregatedByDay(repository, responseObserver);
+            return;
+        }
+
+        CommitsCountFor31DaysResponse.Builder responseBuilder = CommitsCountFor31DaysResponse.newBuilder()
+                                                                        .setInstance(host.toString());
+        try (WindowStoreIterator<Long> commitCounts = commitsCountPerRepositoryFor31DaysStore.fetch(repository,
+                Instant.now().minus(31, ChronoUnit.DAYS),
+                Instant.now())) {
+            while (commitCounts.hasNext()) {
+                KeyValue<Long, Long> next = commitCounts.next();
+                responseBuilder.putCommitsCountForDay(Instant.ofEpochMilli(next.key).toString(), next.value);
+            }
+        }
+
+        if (responseBuilder.getCommitsCountForDayCount() == 0) {
+            responseObserver.onError(Status.NOT_FOUND.asRuntimeException());
+            return;
+        }
+
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
     public void streamsAdded(String id, KafkaStreams streams) {
         if (Objects.nonNull(this.streams)) {
             throw new IllegalStateException("KafkaStreams has already been initialized");
@@ -103,16 +140,21 @@ public class CommitsAnalyzerService
         }
 
         if (newState.isRunningOrRebalancing()) {
-            StoreQueryParameters<ReadOnlyKeyValueStore<Repository, Long>> parameters =
+            StoreQueryParameters<ReadOnlyKeyValueStore<Repository, Long>> commitsCountPerRepositoryStoreParameters =
                     StoreQueryParameters.fromNameAndType(
                             CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE,
                             QueryableStoreTypes.<Repository, Long>keyValueStore()).enableStaleStores();
 
+            StoreQueryParameters<ReadOnlyWindowStore<Repository, Long>> commitsCountPerRepositoryFor31DaysStoreParameters =
+                    StoreQueryParameters.fromNameAndType(
+                            CommitsCounterStreams.COMMITS_COUNT_PER_REPOSITORY_STORE_31_DAYS,
+                            QueryableStoreTypes.<Repository, Long>windowStore()).enableStaleStores();
+
             try {
-                this.commitsCountPerRepositoryStore = streams.store(parameters);
+                this.commitsCountPerRepositoryStore = streams.store(commitsCountPerRepositoryStoreParameters);
+                this.commitsCountPerRepositoryFor31DaysStore = streams.store(commitsCountPerRepositoryFor31DaysStoreParameters);
             } catch (InvalidStateStoreException e) {
-                LOGGER.warn("An exception thrown while trying to obtain a store with parameters {}: {}. Probably store doesn't exists now.",
-                        parameters, e);
+                LOGGER.warn("An exception thrown while trying to obtain a store with parameters: {}. Probably store doesn't exists now.", e.toString());
             }
         }
     }
